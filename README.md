@@ -69,6 +69,12 @@ vagrant ssh -- -R 30100:localhost:30100 -N
 
 TBC
 
+##### Utility `socat`
+
+On Mac OSX, you can `brew` it.
+
+TBC
+
 ##### VMWare Fusion NATPF
 
 Edit `/Library/Preferences/VMware\ Fusion/vmnet???/nat.conf`
