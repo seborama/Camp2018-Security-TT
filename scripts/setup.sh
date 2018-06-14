@@ -5,6 +5,7 @@
 #####################################################################
 readonly SCRIPT_HOME="$(pushd $(dirname $0)/.. >/dev/null ; echo ${PWD})"
 
+readonly K8S_NAMESPACE="security-tt"
 readonly MINIKUBE_PROFILE="${MINIKUBE_PROFILE:-minikube-security-tt}"
 readonly MINIKUBE_VM_DRIVER="${MINIKUBE_VM_DRIVER:-virtualbox}"
 
@@ -25,7 +26,8 @@ function install_Brew() {
 #####################################################################
     local package=${1:-Missing package argument in function `$FUNCNAME[0]`}
 
-    brew list "${package}" || brew install "${package}"
+    brew list "${package}" || brew install "${package}" || exit 1
+    echo Done
 }
 
 
@@ -34,7 +36,8 @@ function install_BrewCask() {
 #####################################################################
     local package=${1:-Missing package argument in function `$FUNCNAME[0]`}
 
-    brew cask list "${package}" || brew cask install "${package}"
+    brew cask list "${package}" || brew cask install "${package}" || exit 1
+    echo Done
 }
 
 
@@ -54,7 +57,7 @@ function install_Vagrant() {
     banner "Installing Vagrant"
 
     install_BrewCask vagrant || exit 1
-    install_Brew install vagrant-completion || exit 1
+    install_Brew vagrant-completion || exit 1
 }
 
 
@@ -80,7 +83,7 @@ function build_SplunkForwarderImage() {
     banner "Building Splunk Universal Forwarder Docker image"
     echo "NOTE: This will be updated to have more relevant inputs.conf"
 
-    docker build -t splunk_fwdr . | exit 1
+    docker build -t splunk_fwdr:v1 . | exit 1
 
     popd >/dev/null || exit 1
 }
@@ -122,6 +125,14 @@ function createAndRun_Minikube() {
 }
 
 #####################################################################
+function create_K8s_Namespace() {
+#####################################################################
+    banner "Creating and Kubernetes namespace (${K8S_NAMESPACE})"
+
+    kubectl --context=${MINIKUBE_PROFILE} create namespace ${K8S_NAMESPACE}
+}
+
+#####################################################################
 function deploy_PackagesToMinikube() {
 #####################################################################
     banner "Deploying packages to Minikube (profile: ${MINIKUBE_PROFILE})"
@@ -151,6 +162,7 @@ function deploy_PackagesToMinikube() {
 install_VirtualBox
 install_Vagrant
 install_Kali
+createAndRun_Minikube
+create_K8s_Namespace
 build_SplunkForwarderImage
 run_SplunkForwarderContainer
-createAndRun_Minikube

@@ -1,0 +1,23 @@
+apiVersion: v1
+data:
+  splunk.secret: |
+    someSecret
+  deploymentclient.conf: |
+    # Configure a Splunk deployment client. At a minimum the [deployment-client]  
+    # stanza is required in deploymentclient.conf for deployment client to be enabled.
+    # Deployment client receives apps and places them into the same
+    # repositoryLocation (locally, relative to $SPLUNK_HOME) as it picked them
+    # up from. This is typically $SPLUNK_HOME/etc/apps.  There
+    # is nothing in [deployment-client] because the deployment client is not
+    # overriding the value set on the deployment server side.
+    
+    [deployment-client]
+    
+    [target-broker:deploymentServer]
+    targetUri = splunk-deployment-server.somewhere.com:8089
+    
+kind: ConfigMap
+metadata:
+  creationTimestamp: null
+  name: splunk-forwarder-config
+  namespace: security-tt
