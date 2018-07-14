@@ -2,3 +2,4 @@
 .idea/
 *.swp
 /Kali_Linux/.vagrant/
+SplunkForwarder/splunk-forwarder-daemonset.generated.yaml

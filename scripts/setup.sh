@@ -221,8 +221,8 @@ function build_SplunkForwarderImage() {
     banner "Building Splunk Universal Forwarder Docker image"
 
     eval $(minikube docker-env) || exit 1
-    docker build -t ${REGISTRY_CLUSTERIP}/splunk_fwdr_7:v1 . | exit 1
-    docker push ${REGISTRY_CLUSTERIP}/splunk_fwdr_7:v1 || exit 1
+    docker --log-level warn build -t ${REGISTRY_CLUSTERIP}/splunk_fwdr_7:v1 . || exit 1
+    docker --log-level warn push ${REGISTRY_CLUSTERIP}/splunk_fwdr_7:v1 || exit 1
     eval $(minikube docker-env --unset) || exit 1
 
     popd >/dev/null || exit 1
