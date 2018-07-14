@@ -4,14 +4,17 @@ metadata:
   name: splunk-forwarder-daemonset
   namespace: security-tt
 spec:
+  selector:
+    matchLabels:
+      app: splunk-forwarder-app
   template:
     metadata:
       labels:
-         app: splunk-forwarder
+         app: splunk-forwarder-app
     spec:
       containers:
-      - name: splunk-forwarder
-        image: splunk_fwdr:v1 # this will likely need the registry reference
+      - name: splunk-forwarder-pod
+        image: {{REGISTRY_IP}}/splunk_fwdr_7:v1
         env:
         - name: SPLUNK_START_ARGS
           value: "--accept-license --answer-yes"
