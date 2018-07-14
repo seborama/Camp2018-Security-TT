@@ -261,7 +261,7 @@ function deploy_PackagesToMinikube() {
     read -s -p "Enter value for 'mariadbRootPassword': " mariadbRootPassword; echo
     read -s -p "Enter value for 'mariadbPassword': " mariadbPassword; echo
 
-    helm --context=${MINIKUBE_PROFILE} install \
+    helm --kube-context=${MINIKUBE_PROFILE} install \
          -f WordPress/values-stable-wordpress-topicteam.yaml \
          stable/wordpress \
          --set-string wordpressPassword="${wordpressPassword}" \
