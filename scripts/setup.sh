@@ -69,14 +69,50 @@ function install_Vagrant() {
 
 
 #####################################################################
+function vagrant_destroy() {
+#####################################################################
+    vagrant status | grep -q "not created" && return
+
+    echo "This Vagrant machine has already been set-up previously."
+    vagrant destroy
+}
+
+
+#####################################################################
 function install_Kali() {
 #####################################################################
     pushd "${SCRIPT_HOME}/Kali_Linux" >/dev/null || exit 1
 
     banner "Installing Kali Linux"
-    echo "WARNING - This may take several hours depending on the speed of your internet connection and your laptop"
+    if ! vagrant_destroy; then
+        echo "Skipping..."
+        return
+    fi
 
+    echo -e "\n***WARNING - This may take over an hour depending on the speed of your internet connection and your laptop\n"
     vagrant up
+
+    popd >/dev/null || exit 1
+}
+
+
+#####################################################################
+function install_Splunk() {
+#####################################################################
+    pushd "${SCRIPT_HOME}/Splunk" >/dev/null || exit 1
+
+    banner "Installing Splunk"
+    if ! vagrant_destroy; then
+        echo "Skipping..."
+        return
+    fi
+
+    local splunkPassword
+
+    read -s -p "Enter value for 'splunkPassword': " splunkPassword; echo
+
+    echo -e "\n***WARNING - This may take over an hour depending on the speed of your internet connection and your laptop\n"
+    SPLUNK_PASSWORD="${splunkPassword}" vagrant up
 
     popd >/dev/null || exit 1
 }
@@ -116,6 +152,10 @@ function install_Docker() {
 
     brew_cask_install docker || exit 1
     brew_install docker-completion || exit 1
+
+    while ! docker system info &>/dev/null; do
+        sleep 2
+    done
 }
 
 
@@ -262,6 +302,8 @@ function deploy_PackagesToMinikube() {
     read -s -p "Enter value for 'mariadbPassword': " mariadbPassword; echo
 
     helm --kube-context=${MINIKUBE_PROFILE} install \
+         --name=wordpress \
+         --namespace=${K8S_NAMESPACE} \
          -f WordPress/values-stable-wordpress-topicteam.yaml \
          stable/wordpress \
          --set-string wordpressPassword="${wordpressPassword}" \
@@ -276,6 +318,7 @@ function deploy_PackagesToMinikube() {
 install_VirtualBox
 install_Vagrant
 install_Kali
+install_Splunk
 install_kubernetes_cli
 install_Helm
 install_Docker
