@@ -84,12 +84,7 @@ function install_Kali() {
     pushd "${SCRIPT_HOME}/Kali_Linux" >/dev/null || exit 1
 
     banner "Installing Kali Linux"
-    if ! vagrant_destroy; then
-        echo "Skipping..."
-        return
-    fi
-
-    echo -e "\n***WARNING - This may take over an hour depending on the speed of your internet connection and your laptop\n"
+    vagrant_destroy && echo -e "\n***WARNING - This may take over an hour depending on the speed of your internet connection and your laptop\n"
     vagrant up
 
     popd >/dev/null || exit 1
@@ -101,18 +96,26 @@ function install_Splunk() {
 #####################################################################
     pushd "${SCRIPT_HOME}/Splunk" >/dev/null || exit 1
 
-    banner "Installing Splunk"
-    if ! vagrant_destroy; then
-        echo "Skipping..."
-        return
-    fi
-
     local splunkPassword
 
-    read -s -p "Enter value for 'splunkPassword': " splunkPassword; echo
+    banner "Installing Splunk"
+    if vagrant_destroy; then
+        read -s -p "Enter value for 'splunkPassword': " splunkPassword; echo
+        echo -e "\n***WARNING - This may take over an hour depending on the speed of your internet connection and your laptop\n"
+    fi
 
-    echo -e "\n***WARNING - This may take over an hour depending on the speed of your internet connection and your laptop\n"
-    SPLUNK_PASSWORD="${splunkPassword}" vagrant up
+    read -p "TODO - Should we run Splunk inside the Minikube K8s cluster to avoid IP complications (this would also be more secure)? Pb: might overload the cluster capacity!? Press {RETURN} to continue..."
+
+    SPLUNK_PASSWORD="${splunkPassword:-splunkPassword}" vagrant up
+
+    echo "Obtaining Splunk VM IP..."
+    SPLUNK_IP=""
+    while [ -z "${SPLUNK_IP}" ];
+    do
+        SPLUNK_IP=$(vagrant ssh -c "ip address show eth1 | awk '/inet /{print \$2}' | cut -d/ -f 1")
+        sleep 2
+    done
+    echo "SPLUNK_IP=${SPLUNK_IP}"
 
     popd >/dev/null || exit 1
 }
@@ -152,19 +155,19 @@ function install_Docker() {
 
     brew_cask_install docker || exit 1
     brew_install docker-completion || exit 1
-
-    while ! docker system info &>/dev/null; do
-        sleep 2
-    done
 }
 
 
 #####################################################################
-start_Docker() {
+function start_Docker() {
 #####################################################################
-    banner "Starting Minikube"
+    banner "Starting Docker"
 
     open --background -a Docker
+
+    while ! docker system info &>/dev/null; do
+        sleep 2
+    done
 }
 
 
@@ -230,7 +233,7 @@ function wait_until_k8s_environment_is_ready() {
     while true;
     do
         kubectl get pods --all-namespaces -o jsonpath="${jsonPath}" | tr "±" "\n" | grep false >"${reportFile}"
-        [ "$(wc -l ${reportFile} | awk '{print $1}')" != 0 ] && break
+        [ "$(wc -l ${reportFile} | awk '{print $1}')" == 0 ] && break
         sleep 2
     done
 
@@ -287,6 +290,49 @@ function deploy_SplunkUF() {
 
 
 #####################################################################
+function build_SplunkImage() {
+#####################################################################
+    pushd "${SCRIPT_HOME}/Splunk7" >/dev/null || exit 1
+
+    banner "Building Splunk Docker image"
+
+    eval $(minikube docker-env) || exit 1
+    docker --log-level warn build -t ${REGISTRY_CLUSTERIP}/splunk_7:v1 . || exit 1
+    docker --log-level warn push ${REGISTRY_CLUSTERIP}/splunk_7:v1 || exit 1
+    eval $(minikube docker-env --unset) || exit 1
+
+    popd >/dev/null || exit 1
+}
+
+
+#####################################################################
+function deploy_Splunk() {
+#####################################################################
+    pushd "${SCRIPT_HOME}/Splunk7" >/dev/null || exit 1
+
+    banner "Deploying Splunk to Minikube (profile: ${MINIKUBE_PROFILE})"
+    read -p "DEBUG - THIS IS NOT FINISHED"
+
+    local splunkPassword=" "
+    while echo "${splunkPassword}"| grep -qF " " || [ ${#splunkPassword} -lt 8 ]; do
+        read -s -p "Enter value for 'splunkPassword' (space characters are NOT permitted): " splunkPassword; echo
+    done
+
+    kubectl apply -f splunk-config.yaml || exit 1
+
+    [ -f splunk-daemonset.generated.yaml ] && rm splunk-daemonset.generated.yaml
+    sed -e "s/{{REGISTRY_IP}}/${REGISTRY_CLUSTERIP}/g" \
+        -e "s/{{SPLUNK_PASSWORD}}/${splunkPassword}/g" \
+        splunk-daemonset.templ.yaml >splunk-daemonset.generated.yaml || exit 1
+    kubectl apply -f splunk-daemonset.generated.yaml || exit 1
+
+    kubectl apply -f splunk-service.yaml || exit 1
+
+    popd >/dev/null || exit 1
+}
+
+
+#####################################################################
 function deploy_PackagesToMinikube() {
 #####################################################################
     banner "Deploying packages to Minikube (profile: ${MINIKUBE_PROFILE})"
@@ -313,12 +359,21 @@ function deploy_PackagesToMinikube() {
 
 
 #####################################################################
+function display_minikube_services() {
+#####################################################################
+    echo -e "\n\n"
+
+    minikube service list
+}
+
+
+#####################################################################
 # Main Programme Entry
 #####################################################################
 install_VirtualBox
 install_Vagrant
 install_Kali
-install_Splunk
+#install_Splunk
 install_kubernetes_cli
 install_Helm
 install_Docker
@@ -328,6 +383,10 @@ createAndRun_Minikube
 wait_until_k8s_environment_is_ready
 wait_minikiube_registry_addon_is_ready
 create_K8s_Namespace
-build_SplunkForwarderImage
-deploy_SplunkUF
+build_SplunkImage
+deploy_Splunk
+#build_SplunkForwarderImage
+#deploy_SplunkUF
 deploy_PackagesToMinikube
+
+display_minikube_services
