@@ -84,10 +84,7 @@ function install_Kali() {
     pushd "${SCRIPT_HOME}/Kali_Linux" >/dev/null || exit 1
 
     banner "Installing Kali Linux"
-    if ! vagrant_destroy; then
-        echo "Skipping..."
-        return
-    fi
+    vagrant_destroy
 
     echo -e "\n***WARNING - This may take over an hour depending on the speed of your internet connection and your laptop\n"
     vagrant up
@@ -101,18 +98,27 @@ function install_Splunk() {
 #####################################################################
     pushd "${SCRIPT_HOME}/Splunk" >/dev/null || exit 1
 
-    banner "Installing Splunk"
-    if ! vagrant_destroy; then
-        echo "Skipping..."
-        return
-    fi
-
     local splunkPassword
 
-    read -s -p "Enter value for 'splunkPassword': " splunkPassword; echo
+    banner "Installing Splunk"
+    if vagrant_destroy; then
+        read -s -p "Enter value for 'splunkPassword': " splunkPassword
+        echo
+    fi
+
+    read -p "TODO - Should we run Splunk inside the Minikube K8s cluster to avoid IP complications (this would also be more secure)? Pb: might overload the cluster capacity!? Press {RETURN} to continue..."
 
     echo -e "\n***WARNING - This may take over an hour depending on the speed of your internet connection and your laptop\n"
     SPLUNK_PASSWORD="${splunkPassword}" vagrant up
+
+    echo "Obtaining Splunk VM IP..."
+    SPLUNK_IP=""
+    while [ -z "${SPLUNK_IP}" ];
+    do
+        SPLUNK_IP=$(vagrant ssh -c "ip address show eth1 | awk '/inet /{print \$2}' | cut -d/ -f 1")
+        sleep 2
+    done
+    echo "SPLUNK_IP=${SPLUNK_IP}"
 
     popd >/dev/null || exit 1
 }
