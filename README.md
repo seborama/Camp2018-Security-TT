@@ -16,7 +16,7 @@ To set up the lab, run:
 
 Some default settings may be overridden via shell variables.
 
-`MINIKUBE_PROFILE`: the Minikube profile name.
+`MINIKUBE_PROFILE`: the Minikube profile name. NOTE: several versions of Minikube (e.g. 0.27, 0.28) fail unless the profile name is `minikube`.
 `MINIKUBE_VM_DRIVER`: the Minikube VM driver.
 
 ```bash
@@ -61,9 +61,14 @@ You need to allow Kali to connect to the Minikube VM. This is particularly impor
 ##### SSH tunnel
 
 ```bash
+# expose access to wordpress inside minikube via localhost:30100 (this could also be done with kubectl proxy / kubectl port-forward)
 ssh -i ~/.minikube/machines/<profile_name>/id_rsa -L 30100:localhost:30100 -N docker@`minikube --profile=<profile_name> ip`
+
+# enable access to wordpress inside minikube via localhost:30100 from within Kali Linux
 vagrant ssh -- -R 30100:localhost:30100 -N
 ```
+
+Together, these two commands effectively create a bridge between Kali Linux and the wordpress service running inside Minikube.
 
 ##### Utility `pfctl` (Mac OSX)
 
