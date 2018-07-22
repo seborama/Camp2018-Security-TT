@@ -106,7 +106,16 @@ function install_Splunk() {
 
     read -p "TODO - Should we run Splunk inside the Minikube K8s cluster to avoid IP complications (this would also be more secure)? Pb: might overload the cluster capacity!? Press {RETURN} to continue..."
 
-    SPLUNK_PASSWORD="${splunkPassword:-splunkPassword}" vagrant up
+    SPLUNK_PASSWORD="${splunkPassword}" vagrant up
+
+    echo "Obtaining Splunk VM IP..."
+    SPLUNK_IP=""
+    while [ -z "${SPLUNK_IP}" ];
+    do
+        SPLUNK_IP=$(vagrant ssh -c "ip address show eth1 | awk '/inet /{print \$2}' | cut -d/ -f 1")
+        sleep 2
+    done
+    echo "SPLUNK_IP=${SPLUNK_IP}"
 
     echo "Obtaining Splunk VM IP..."
     SPLUNK_IP=""
@@ -311,7 +320,6 @@ function deploy_Splunk() {
     pushd "${SCRIPT_HOME}/Splunk7" >/dev/null || exit 1
 
     banner "Deploying Splunk to Minikube (profile: ${MINIKUBE_PROFILE})"
-    read -p "DEBUG - THIS IS NOT FINISHED"
 
     local splunkPassword=" "
     while echo "${splunkPassword}"| grep -qF " " || [ ${#splunkPassword} -lt 8 ]; do
