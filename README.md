@@ -29,14 +29,6 @@ Note:
 
   You will need to use a NATPF set-up or a tunnelling solution to allow Kali to access the Minikube VM.
 
-##### Kali Linux
-
-At time of writing, the default credentials are user `vagrant` and password `changeme`.
-
-To access the `root` user, use `sudo`. 
-
-You can also use `vagrant ssh` and change the password of the `vagrant` user to a desired value.
-
 ##### Vagrant and VMWare Fusion
 
 This requires a commercial addon.
@@ -110,6 +102,12 @@ More information:
 TBC
 
 ### Kali Linux
+
+At time of writing, the default credentials are user vagrant and password changeme.
+
+To access the root user, use `sudo -s`.
+
+You can also use vagrant ssh and change the password of the vagrant user to a desired value.
 
 Useful reference:
 
