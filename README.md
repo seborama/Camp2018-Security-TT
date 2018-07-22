@@ -103,7 +103,7 @@ TBC
 
 ### Kali Linux
 
-At time of writing, the default credentials are user vagrant and password changeme.
+At time of writing, the default credentials are user `vagrant` and password `changeme`.
 
 To access the root user, use `sudo -s`.
 
