@@ -205,6 +205,8 @@ function createAndRun_Minikube() {
     minikube addons enable registry || exit 1
     minikube addons disable heapster
     minikube addons disable metrics-server
+
+    echo "Minikube IP: $(minikube --profile=${MINIKUBE_PROFILE} ip)"
 }
 
 
