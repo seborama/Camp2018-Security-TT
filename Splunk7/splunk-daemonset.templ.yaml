@@ -27,22 +27,28 @@ spec:
           name: docker-socket
         - mountPath: /var/lib/docker/containers
           readOnly: true
-          name: container-logs
-        - mountPath: /opt/staging/splunk/etc/apps/security-tt/local
-          name: splunk-config
+          name: docker-containers
         - mountPath: /var/log/containers
           readOnly: true
+          name: container-logs
+        - mountPath: /var/log/pods
+          readOnly: true
           name: pod-logs
+        - mountPath: /opt/staging/splunk/etc/apps/security-tt/local
+          name: splunk-config
       volumes:
         - name: docker-socket
           hostPath:
             path: /var/run/docker.sock
-        - name: container-logs
+        - name: docker-containers
           hostPath:
             path: /var/lib/docker/containers
-        - name: pod-logs
+        - name: container-logs
           hostPath:
             path: /var/log/containers
+        - name: pod-logs
+          hostPath:
+            path: /var/log/pods
         - name: splunk-config
           configMap:
             name: splunk-config
