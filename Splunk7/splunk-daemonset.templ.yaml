@@ -1,0 +1,48 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: splunk-daemonset
+  namespace: security-tt
+spec:
+  selector:
+    matchLabels:
+      app: splunk-app
+  template:
+    metadata:
+      labels:
+         app: splunk-app
+    spec:
+      containers:
+      - name: splunk-pod
+        image: {{REGISTRY_IP}}/splunk_7:v1
+        env:
+        - name: SPLUNK_START_ARGS
+          value: |
+            --accept-license --answer-yes --no-prompt --seed-passwd {{SPLUNK_PASSWORD}}
+        - name: SPLUNK_USER
+          value: root
+        volumeMounts:
+        - mountPath: /var/run/docker.sock
+          readOnly: true
+          name: docker-socket
+        - mountPath: /var/lib/docker/containers
+          readOnly: true
+          name: container-logs
+        - mountPath: /opt/staging/splunk/etc/apps/security-tt/local
+          name: splunk-config
+        - mountPath: /var/log/containers
+          readOnly: true
+          name: pod-logs
+      volumes:
+        - name: docker-socket
+          hostPath:
+            path: /var/run/docker.sock
+        - name: container-logs
+          hostPath:
+            path: /var/lib/docker/containers
+        - name: pod-logs
+          hostPath:
+            path: /var/log/containers
+        - name: splunk-config
+          configMap:
+            name: splunk-config

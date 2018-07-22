@@ -118,6 +118,11 @@ Useful reference:
 
 ### Splunk Enterprise
 
+
+Splunk runs on the minikube IP on port 30800.
+
+Log in as user `admin` with the password you keyed in during set-up.
+
 Register for a trial at:
 
 - https://www.splunk.com/en_us/download/splunk-enterprise/thank-you-enterprise.html
