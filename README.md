@@ -1,10 +1,30 @@
-## Security Topic Team
+# Security Topic Team
 
 Pen-testing playground lab.
 
-⚠️ Under construction ⚠️
+## Splunk Enterprise Security (pre-requisite)
 
-### Set up instructions
+Sign up for the Trial (Cloud):
+
+- https://www.splunk.com/page/sign_up/es_sandbox?redirecturl=%2Fgetsplunk%2Fes_sandbox
+
+Once your trial instance is running, navigate to it and follow the steps below.
+
+### Download your Universal Forwarder Credentials for the Trial
+
+The set-up script needs your trial credentials to forward events from the Minikube K8s cluster to Splunk Enterprise Security in the Cloud.
+
+Click Apps in the menu bar at the top of the web page > Universal Forwarder
+
+Click the 'Download Universal Forwarder Credentials' button, point number 3 (at time of writing).
+
+This will download a file called `splunkclouduf.spl`. Keep it handy, you'll use it during set-up.
+
+### Community edition (not yet explored)
+
+- https://www.phantom.us/download/
+
+## Set up instructions
 
 To set up the lab, run:
 
@@ -12,7 +32,7 @@ To set up the lab, run:
 ./scripts/setup.sh
 ```
 
-#### Configuration options
+### Configuration options
 
 Some default settings may be overridden via shell variables.
 
@@ -29,7 +49,7 @@ Note:
 
   You will need to use a NATPF set-up or a tunnelling solution to allow Kali to access the Minikube VM.
 
-### Kali Linux
+## Kali Linux
 
 At time of writing, the default credentials are user `vagrant` and password `changeme`.
 
@@ -42,13 +62,13 @@ Useful reference:
 - https://www.kali.org/news/kali-linux-metapackages/
 - https://tools.kali.org/tools-listing
 
-### Splunk Enterprise
+## Splunk Enterprise
 
 Splunk runs on the minikube IP on port 30800.
 
 Log in as user `admin` with the password you keyed in during set-up.
 
-#### Splunk Trials
+## Splunk Trials
 
 This is optional, only to satisfy your curiosity or to explore Splunk further.
 
@@ -59,17 +79,6 @@ Register for a trial at:
 ```bash
 wget -O splunk-7.1.1-8f0ead9ec3db-linux-2.6-amd64.deb 'https://www.splunk.com/bin/splunk/DownloadActivityServlet?architecture=x86_64&platform=linux&version=7.1.1&product=splunk&filename=splunk-7.1.1-8f0ead9ec3db-linux-2.6-amd64.deb&wget=true'
 ```
-
-### Splunk Enterprise Security
-
-Trial (Cloud):
-
-- https://www.splunk.com/page/sign_up/es_sandbox?redirecturl=%2Fgetsplunk%2Fes_sandbox
-
-Community edition:
-
-- https://www.phantom.us/download/
-
 
 ## Advanced Topics
 

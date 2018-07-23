@@ -328,6 +328,15 @@ function deploy_Splunk() {
         read -s -p "Enter value for 'splunkPassword' (minimum 8 characters, space characters NOT permitted): " splunkPassword; echo
     done
 
+    local splunkEntSecCredentialsSPL="H.!"
+    while [ ! -f "${splunkEntSecCredentialsSPL}" ]; do
+        read -s -p "Enter the full location of your Splunk Universal Forwarder Credentials file: " splunkEntSecCredentialsSPL; echo
+        echo "THIS IS NOT FINISHED. PERHAPS IT SITS BETTER WITH THE DOCKERIMAGE (AS IT NEEDS RUNNING ON ALL SPLUNK NODES)"
+        echo "NEED TO BASE64 THE DATA, ADD TO splunk-secret.generated.yaml"
+        echo "THEN RUN './bin/splunk install app /tmp/splunkclouduf.spl -auth admin:\$splunkPassword'"
+        echo "AND FINALLY ./bin/splunk restart"
+    done
+
     kubectl apply -f splunk-config.yaml || exit 1
 
     [ -f splunk-daemonset.generated.yaml ] && rm splunk-daemonset.generated.yaml
