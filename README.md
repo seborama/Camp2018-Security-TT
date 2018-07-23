@@ -53,7 +53,7 @@ You need to allow Kali to connect to the Minikube VM. This is particularly impor
 ##### SSH tunnel
 
 ```bash
-# expose access to wordpress inside minikube via localhost:30100 (this could also be done with kubectl proxy / kubectl port-forward)
+# expose access to wordpress inside minikube via localhost:30100 (this could also be done with kubectl port-forward)
 ssh -i ~/.minikube/machines/<profile_name>/id_rsa -L 30100:localhost:30100 -N docker@`minikube --profile=<profile_name> ip`
 
 # enable access to wordpress inside minikube via localhost:30100 from within Kali Linux
