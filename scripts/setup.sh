@@ -206,7 +206,7 @@ function createAndRun_Minikube() {
     minikube addons disable heapster
     minikube addons disable metrics-server
 
-    echo "Minikube IP: $(minikube --profile=${MINIKUBE_PROFILE} ip)"
+    echo -e "\nMinikube IP: $(minikube --profile=${MINIKUBE_PROFILE} ip)"
 }
 
 
@@ -325,7 +325,7 @@ function deploy_Splunk() {
 
     local splunkPassword=" "
     while echo "${splunkPassword}"| grep -qF " " || [ ${#splunkPassword} -lt 8 ]; do
-        read -s -p "Enter value for 'splunkPassword' (space characters are NOT permitted): " splunkPassword; echo
+        read -s -p "Enter value for 'splunkPassword' (minimum 8 characters, space characters NOT permitted): " splunkPassword; echo
     done
 
     kubectl apply -f splunk-config.yaml || exit 1
@@ -371,9 +371,10 @@ function deploy_PackagesToMinikube() {
 #####################################################################
 function display_minikube_services() {
 #####################################################################
-    echo -e "\n\n"
-
+    echo -e "\n"
+    echo -e "\nMinikube IP: $(minikube --profile=${MINIKUBE_PROFILE} ip)"
     minikube service list
+    echo -e "\nMinikube registry Service ClusterIP: ${REGISTRY_CLUSTERIP}"
 }
 
 
