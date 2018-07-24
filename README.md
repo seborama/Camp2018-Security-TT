@@ -4,27 +4,40 @@ Pen-testing playground lab.
 
 ⚠️ Under construction ⚠️
 
-## Splunk Enterprise Security (pre-requisite)
+What you (will) get:
+
+  - ✅ Homebrew, VirtualBox, Docker, Vagrant, Minikube
+  - ✅ Kali Linux (in VirtualBox)
+  - ✅ Slunk (Minikube K8s cluster)
+  - ✅ Wordpress (Minikube K8s cluster)
+  - 🐣 Integration with Splunk Enterprise Security
+  - ❎ Phantom (Community edition of Splunk Enterprise Security) (VirtualBox)
+
+## Pre-requisites
+
+### Splunk Enterprise Security
 
 Sign up for the Trial (Cloud):
 
-- https://www.splunk.com/page/sign_up/es_sandbox?redirecturl=%2Fgetsplunk%2Fes_sandbox
+  - https://www.splunk.com/page/sign_up/es_sandbox?redirecturl=%2Fgetsplunk%2Fes_sandbox
 
-Once your trial instance is running, navigate to it and follow the steps below.
+### Community edition (currently being explored)
 
-### Download your Universal Forwarder Credentials for the Trial
+  - Register at https://www.phantom.us/download/
+  - Download the VM
+  - Install it (VirtualBox recommended for network reasons since the rest of this project currently uses VirtualBox)
 
-The set-up script needs your trial credentials to forward events from the Minikube K8s cluster to Splunk Enterprise Security in the Cloud.
+### Download your Universal Forwarder Credentials from your Splunk Enterprise Security / Phantom instance
 
-Click Apps in the menu bar at the top of the web page > Universal Forwarder
+Once your instance of SES or Phantom is running, log on to its Web UI.
 
-Click the 'Download Universal Forwarder Credentials' button, point number 3 (at time of writing).
+The set-up script needs your SUF credentials to forward events from the Minikube K8s cluster's Splunk instance.
 
-This will download a file called `splunkclouduf.spl`. Keep it handy, you'll use it during set-up.
+In SES:
 
-### Community edition (not yet explored)
-
-- https://www.phantom.us/download/
+  - Click Apps in the menu bar at the top of the web page > Universal Forwarder
+  - Click the 'Download Universal Forwarder Credentials' button, point number 3 (at time of writing).
+  - This will download a file called `splunkclouduf.spl`. Keep it handy, you'll use it during set-up.
 
 ## Set up instructions
 
@@ -33,6 +46,8 @@ To set up the lab, run:
 ```bash
 ./scripts/setup.sh
 ```
+
+And follow the instructions the script displays.
 
 ### Configuration options
 
@@ -68,11 +83,17 @@ Useful reference:
 
 Splunk runs on the minikube IP on port 30800.
 
+The minikube IP is displayed during the set-up. After that you can run this command to find it again:
+
+```bash
+minikube ip
+```
+
 Log in as user `admin` with the password you keyed in during set-up.
 
 ## Splunk Trials
 
-This is optional, only to satisfy your curiosity or to explore Splunk further.
+This is not needed and only to satisfy your curiosity or to explore Splunk further.
 
 Register for a trial at:
 

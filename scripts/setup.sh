@@ -9,7 +9,7 @@ readonly K8S_NAMESPACE="security-tt"
 #readonly MINIKUBE_PROFILE="${MINIKUBE_PROFILE:-minikubesecuritytt}"
 readonly MINIKUBE_PROFILE="minikube"
 [ "${MINIKUBE_PROFILE}" != "minikube" ] &&
-    read -p "Note: using a profile name other than minikube appears to cause stability issues with minikube and kubeadm"
+    read -p "Note: using a profile name other than minikube may cause stability issues with some versions of minikube"
 
 readonly MINIKUBE_VM_DRIVER="${MINIKUBE_VM_DRIVER:-virtualbox}"
 
@@ -33,7 +33,7 @@ function brew_install() {
 #####################################################################
     local package=${1:-Missing package argument in function `$FUNCNAME[0]`}
 
-    brew list "${package}" || brew install "${package}" || exit 1
+    brew list "${package}" &>/dev/null || brew install "${package}" || exit 1
     echo Done
 }
 
@@ -44,6 +44,24 @@ function brew_cask_install() {
     local package=${1:-Missing package argument in function `$FUNCNAME[0]`}
 
     brew cask list "${package}" || brew cask install "${package}" || exit 1
+    echo Done
+}
+
+
+#####################################################################
+function install_brew() {
+#####################################################################
+    banner "Installing Homebrew"
+
+    which -s brew && return
+
+    echo "Homebrew is a pre-requisite but I can't locate your installation."
+    local choice
+    read -p "Perform installation homebrew [y/n]? (default: n) " choice
+    [[ ! "${choice}" =~ ^[Yy1]$ ]] || exit 1
+
+    /usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)" || exit 1
+    brew update || exit 1
     echo Done
 }
 
@@ -328,16 +346,18 @@ function deploy_Splunk() {
         read -s -p "Enter value for 'splunkPassword' (minimum 8 characters, space characters NOT permitted): " splunkPassword; echo
     done
 
+    kubectl apply -f splunk-config.yaml || exit 1
+
     local splunkEntSecCredentialsSPL="H.!"
     while [ ! -f "${splunkEntSecCredentialsSPL}" ]; do
-        read -s -p "Enter the full location of your Splunk Universal Forwarder Credentials file: " splunkEntSecCredentialsSPL; echo
-        echo "THIS IS NOT FINISHED. PERHAPS IT SITS BETTER WITH THE DOCKERIMAGE (AS IT NEEDS RUNNING ON ALL SPLUNK NODES)"
-        echo "NEED TO BASE64 THE DATA, ADD TO splunk-secret.generated.yaml"
-        echo "THEN RUN './bin/splunk install app /tmp/splunkclouduf.spl -auth admin:\$splunkPassword'"
-        echo "AND FINALLY ./bin/splunk restart"
+        read -p "Enter the full location of your Splunk Universal Forwarder Credentials file (e.g. /path/to/splunkclouduf.spl): " splunkEntSecCredentialsSPL; echo
     done
 
-    kubectl apply -f splunk-config.yaml || exit 1
+    local splunkclouduf_spl=$(base64 -i "${splunkEntSecCredentialsSPL}") || exit 1
+    [ -f splunk-secret.generated.yaml ] && rm splunk-secret.generated.yaml
+    sed -e "s|{{SOME_BASE_64_SECRET}}|${splunkclouduf_spl}|g" \
+        splunk-secret.templ.yaml >splunk-secret.generated.yaml || exit 1
+    kubectl apply -f splunk-secret.generated.yaml || exit 1
 
     [ -f splunk-daemonset.generated.yaml ] && rm splunk-daemonset.generated.yaml
     sed -e "s/{{REGISTRY_IP}}/${REGISTRY_CLUSTERIP}/g" \
@@ -390,6 +410,7 @@ function display_minikube_services() {
 #####################################################################
 # Main Programme Entry
 #####################################################################
+install_brew
 install_VirtualBox
 install_Vagrant
 install_Kali
