@@ -36,6 +36,8 @@ spec:
           name: pod-logs
         - mountPath: /opt/staging/splunk/etc/apps/security-tt/local
           name: splunk-config
+        - mountPath: /opt/staging/splunkEnterprise/security-tt
+          name: splunk-secret
       volumes:
         - name: docker-socket
           hostPath:
@@ -52,3 +54,6 @@ spec:
         - name: splunk-config
           configMap:
             name: splunk-config
+        - name: splunk-secret
+          secret:
+            secretName: splunk-secret

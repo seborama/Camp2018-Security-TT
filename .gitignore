@@ -6,3 +6,4 @@
 /Splunk/.vagrant/
 /SplunkForwarder/splunk-forwarder-daemonset.generated.yaml
 /Splunk7/splunk-daemonset.generated.yaml
+/Splunk7/splunk-secret.generated.yaml
