@@ -19,3 +19,4 @@ RUN ln -s /opt/staging/splunk/etc/apps/security-tt /var/opt/splunk/etc/apps
 # Adds first-time execution set-up for Splunk Cloud Universal Forwarder app
 # This will trigger containers built upon this image to forward messages to Splunk Enterprise Security / Phantom
 COPY splunkESFirstTimeInit.sh /etc/rc.local
+RUN chmod 754 /etc/rc.local

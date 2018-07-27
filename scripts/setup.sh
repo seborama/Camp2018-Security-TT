@@ -43,7 +43,7 @@ function brew_cask_install() {
 #####################################################################
     local package=${1:-Missing package argument in function `$FUNCNAME[0]`}
 
-    brew cask list "${package}" || brew cask install "${package}" || exit 1
+    brew cask list "${package}" &>/dev/null || brew cask install "${package}" || exit 1
     echo Done
 }
 
@@ -57,7 +57,7 @@ function install_brew() {
 
     echo "Homebrew is a pre-requisite but I can't locate your installation."
     local choice
-    read -p "Perform installation homebrew [y/n]? (default: n) " choice
+    read -p "Perform installation homebrew (y/N)? " choice
     [[ ! "${choice}" =~ ^[Yy1]$ ]] || exit 1
 
     /usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)" || exit 1
@@ -104,45 +104,6 @@ function install_Kali() {
     banner "Installing Kali Linux"
     vagrant_destroy && echo -e "\n***WARNING - This may take over an hour depending on the speed of your internet connection and your laptop\n"
     vagrant up
-
-    popd >/dev/null || exit 1
-}
-
-
-#####################################################################
-function install_Splunk() {
-#####################################################################
-    pushd "${SCRIPT_HOME}/Splunk" >/dev/null || exit 1
-
-    local splunkPassword
-
-    banner "Installing Splunk"
-    if vagrant_destroy; then
-        read -s -p "Enter value for 'splunkPassword': " splunkPassword; echo
-        echo -e "\n***WARNING - This may take over an hour depending on the speed of your internet connection and your laptop\n"
-    fi
-
-    read -p "TODO - Should we run Splunk inside the Minikube K8s cluster to avoid IP complications (this would also be more secure)? Pb: might overload the cluster capacity!? Press {RETURN} to continue..."
-
-    SPLUNK_PASSWORD="${splunkPassword}" vagrant up
-
-    echo "Obtaining Splunk VM IP..."
-    SPLUNK_IP=""
-    while [ -z "${SPLUNK_IP}" ];
-    do
-        SPLUNK_IP=$(vagrant ssh -c "ip address show eth1 | awk '/inet /{print \$2}' | cut -d/ -f 1")
-        sleep 2
-    done
-    echo "SPLUNK_IP=${SPLUNK_IP}"
-
-    echo "Obtaining Splunk VM IP..."
-    SPLUNK_IP=""
-    while [ -z "${SPLUNK_IP}" ];
-    do
-        SPLUNK_IP=$(vagrant ssh -c "ip address show eth1 | awk '/inet /{print \$2}' | cut -d/ -f 1")
-        sleep 2
-    done
-    echo "SPLUNK_IP=${SPLUNK_IP}"
 
     popd >/dev/null || exit 1
 }
@@ -210,7 +171,7 @@ function createAndRun_Minikube() {
     if [ -d "${installDir}" ]; then
         echo "Minikube has already been set-up previously."
         local choice
-        read -p "WARNING - Would you like to DESTROY it? (default: n) " choice
+        read -p "WARNING - Would you like to DESTROY it (y/N)? " choice
         [[ ! "${choice}" =~ ^[Yy]$ ]] && exit 1
 
         minikube --profile=${MINIKUBE_PROFILE} stop
@@ -219,7 +180,12 @@ function createAndRun_Minikube() {
     fi
 
     #  --logtostderr --v=2 --stderrthreshold=2 --loglevel=1
-    minikube --profile=${MINIKUBE_PROFILE} start --vm-driver=${MINIKUBE_VM_DRIVER} --memory=8192 --cpus=4 || exit 1
+    minikube --profile=${MINIKUBE_PROFILE} \
+             start \
+             --vm-driver=${MINIKUBE_VM_DRIVER} \
+             --memory=8192 \
+             --cpus=4 || exit 1
+
     minikube addons enable registry || exit 1
     minikube addons disable heapster
     minikube addons disable metrics-server
@@ -235,20 +201,6 @@ function create_K8s_Namespace() {
 
     kubectl --context=${MINIKUBE_PROFILE} create namespace ${K8S_NAMESPACE}
 }
-
-
-#####################################################################
-#function run_SplunkForwarderContainer() {
-#####################################################################
-#    pushd "${SCRIPT_HOME}/SplunkForwarder" >/dev/null || exit 1
-#
-#    banner "Running Splunk Universal Forwarder Docker container"
-#    echo "NOTE: This will be transferred to K8s ASAP"
-#
-#    docker run --rm --env SPLUNK_START_ARGS="--accept-license" -d splunk_fwdr:latest || exit 1
-#
-#    popd >/dev/null || exit 1
-#}
 
 
 #####################################################################
@@ -282,39 +234,6 @@ function wait_minikiube_registry_addon_is_ready() {
     echo "Minikube registry Service ClusterIP: ${REGISTRY_CLUSTERIP}"
 
     while ! minikube ssh "curl -sSI ${REGISTRY_CLUSTERIP}/v2/" | grep -q " 200 OK"; do sleep 2; done
-}
-
-
-#####################################################################
-function build_SplunkForwarderImage() {
-#####################################################################
-    pushd "${SCRIPT_HOME}/SplunkForwarder" >/dev/null || exit 1
-
-    banner "Building Splunk Universal Forwarder Docker image"
-
-    eval $(minikube docker-env) || exit 1
-    docker --log-level warn build -t ${REGISTRY_CLUSTERIP}/splunk_fwdr_7:v1 . || exit 1
-    docker --log-level warn push ${REGISTRY_CLUSTERIP}/splunk_fwdr_7:v1 || exit 1
-    eval $(minikube docker-env --unset) || exit 1
-
-    popd >/dev/null || exit 1
-}
-
-
-#####################################################################
-function deploy_SplunkUF() {
-#####################################################################
-    pushd "${SCRIPT_HOME}/SplunkForwarder" >/dev/null || exit 1
-
-    banner "Deploying Splunk Universal Forwarder to Minikube (profile: ${MINIKUBE_PROFILE})"
-
-    kubectl apply -f splunk-forwarder-config.yaml || exit 1
-
-    [ -f splunk-forwarder-daemonset.generated.yaml ] && rm splunk-forwarder-daemonset.generated.yaml
-    sed "s/{{REGISTRY_IP}}/${REGISTRY_CLUSTERIP}/g" splunk-forwarder-daemonset.templ.yaml >splunk-forwarder-daemonset.generated.yaml || exit 1
-    kubectl apply -f splunk-forwarder-daemonset.generated.yaml || exit 1
-
-    popd >/dev/null || exit 1
 }
 
 
@@ -354,8 +273,12 @@ function deploy_Splunk() {
     done
 
     local splunkclouduf_spl=$(base64 -i "${splunkEntSecCredentialsSPL}") || exit 1
+    local splunkescreds_txt=$(echo "admin:$(cat ${SPLUNK_PASSWORD})"| base64 ) || exit 1
+
     [ -f splunk-secret.generated.yaml ] && rm splunk-secret.generated.yaml
-    sed -e "s|{{SOME_BASE_64_SECRET}}|${splunkclouduf_spl}|g" \
+
+    sed -e "s|{{SPLUNKCLOUDUF_SPL_CONTENTS_BASE64}}|${splunkclouduf_spl}|g" \
+        -e "s|{{SPLUNKESCREDS_BASE64}}|${splunkescreds_txt}|g" \
         splunk-secret.templ.yaml >splunk-secret.generated.yaml || exit 1
     kubectl apply -f splunk-secret.generated.yaml || exit 1
 
@@ -414,7 +337,6 @@ install_brew
 install_VirtualBox
 install_Vagrant
 install_Kali
-#install_Splunk
 install_kubernetes_cli
 install_Helm
 install_Docker
@@ -426,8 +348,6 @@ wait_minikiube_registry_addon_is_ready
 create_K8s_Namespace
 build_SplunkImage
 deploy_Splunk
-#build_SplunkForwarderImage
-#deploy_SplunkUF
 deploy_PackagesToMinikube
 
 display_minikube_services
