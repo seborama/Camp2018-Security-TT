@@ -40,6 +40,7 @@ Sign up for the Trial (Cloud):
     - https://splunkbase.splunk.com/app/3411/
   - Installation instructions at:
     - https://<phantom_vm_ip>/docs/admin/splunk
+  - ⚠️ As Splunk connects to Phantom via a dedicated Splunk App, no SPL file is used. This means that the set-up steps with the scripts will need to be amended.
 
 Notes:
 
@@ -64,7 +65,7 @@ Notes:
       - Edit /etc/hosts
       - Add: `a.b.c.d phantom`,  a.b.c.d should be the actual IP of the Phantom machine
       - Edit the Phantom Server Configuration and replace the a.b.c.d IP with `phantom`:
-        -   "server": "https://phantom"
+        - "server": "https://phantom"
 
   
 ### Download your Universal Forwarder Credentials from your Splunk Enterprise Security / Phantom instance
