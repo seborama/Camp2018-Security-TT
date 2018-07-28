@@ -95,6 +95,9 @@ Useful reference:
 
   - https://www.kali.org/news/kali-linux-metapackages/
   - https://tools.kali.org/tools-listing
+  
+You can access the Wordpress service from Kali on:
+  - http://<`minikube ip>`:30100
 
 ## Splunk Enterprise
 
