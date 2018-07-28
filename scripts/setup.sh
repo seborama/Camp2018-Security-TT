@@ -166,29 +166,38 @@ function createAndRun_Minikube() {
 
     banner "Creating and running Minikube (profile: ${MINIKUBE_PROFILE})"
 
-    eval $(minikube docker-env --unset) || exit 1
+    eval $(minikube --profile ${MINIKUBE_PROFILE} docker-env --unset) || exit 1
+
+    local keepExisting=0
 
     if [ -d "${installDir}" ]; then
         echo "Minikube has already been set-up previously."
         local choice
         read -p "WARNING - Would you like to DESTROY it (y/N)? " choice
-        [[ ! "${choice}" =~ ^[Yy]$ ]] && exit 1
+        if [[ ! "${choice}" =~ ^[Yy1]$ ]]; then
+            read -p "Proceed with the existing Minikube install (Y/n)? " choice
+            [[ "${choice}" =~ ^[Nn0]$ ]] && exit 1
+            keepExisting=1
+        fi
 
-        minikube --profile=${MINIKUBE_PROFILE} stop
-        minikube --profile=${MINIKUBE_PROFILE} delete
-        rm -rf "${installDir}"
+        if [ "${keepExisting}" -ne 1 ]; then
+            minikube --profile=${MINIKUBE_PROFILE} stop
+            minikube --profile=${MINIKUBE_PROFILE} delete
+            rm -rf "${installDir}"
+        fi
     fi
 
-    #  --logtostderr --v=2 --stderrthreshold=2 --loglevel=1
-    minikube --profile=${MINIKUBE_PROFILE} \
-             start \
-             --vm-driver=${MINIKUBE_VM_DRIVER} \
-             --memory=8192 \
-             --cpus=4 || exit 1
+    if [ "${keepExisting}" -ne 1 ]; then
+        minikube --profile=${MINIKUBE_PROFILE} \
+                 start \
+                 --vm-driver=${MINIKUBE_VM_DRIVER} \
+                 --memory=8192 \
+                 --cpus=4 || exit 1
 
-    minikube addons enable registry || exit 1
-    minikube addons disable heapster
-    minikube addons disable metrics-server
+        minikube --profile ${MINIKUBE_PROFILE} addons enable registry || exit 1
+        minikube --profile ${MINIKUBE_PROFILE} addons disable heapster &>/dev/null
+        minikube --profile ${MINIKUBE_PROFILE} addons disable metrics-server &>/dev/null
+    fi
 
     echo -e "\nMinikube IP: $(minikube --profile=${MINIKUBE_PROFILE} ip)"
 }
@@ -199,7 +208,8 @@ function create_K8s_Namespace() {
 #####################################################################
     banner "Creating and Kubernetes namespace (${K8S_NAMESPACE})"
 
-    kubectl --context=${MINIKUBE_PROFILE} create namespace ${K8S_NAMESPACE}
+    kubectl --context=${MINIKUBE_PROFILE} get namespace ${K8S_NAMESPACE} 2>/dev/null && return
+    kubectl --context=${MINIKUBE_PROFILE} create namespace ${K8S_NAMESPACE} || exit 1
 }
 
 
@@ -211,11 +221,12 @@ function wait_until_k8s_environment_is_ready() {
 
     banner "Waiting for K8s environment readiness"
 
+    echo "(Press {RETURN} stop waiting)"
     while true;
     do
-        kubectl get pods --all-namespaces -o jsonpath="${jsonPath}" | tr "±" "\n" | grep false >"${reportFile}"
+        kubectl --context=${MINIKUBE_PROFILE} get pods --all-namespaces -o jsonpath="${jsonPath}" | tr "±" "\n" | grep false >"${reportFile}"
         [ "$(wc -l ${reportFile} | awk '{print $1}')" == 0 ] && break
-        sleep 2
+        read -t 2 && break
     done
 
     rm "${reportFile}"
@@ -227,13 +238,16 @@ function wait_minikiube_registry_addon_is_ready() {
 #####################################################################
     banner "Waiting for Minikube registry addon readiness"
 
-    while ! kubectl -n kube-system get svc registry &>/dev/null; do sleep 2 ; done
+    while ! kubectl --context=${MINIKUBE_PROFILE} -n kube-system get svc registry &>/dev/null; do sleep 2 ; done
 
     # get the ip of the registry endpoint
-    export REGISTRY_CLUSTERIP=$(kubectl -n kube-system get svc registry -o jsonpath="{.spec.clusterIP}") || exit 1
+    export REGISTRY_CLUSTERIP=$(kubectl --context=${MINIKUBE_PROFILE} -n kube-system get svc registry -o jsonpath="{.spec.clusterIP}") || exit 1
     echo "Minikube registry Service ClusterIP: ${REGISTRY_CLUSTERIP}"
 
-    while ! minikube ssh "curl -sSI ${REGISTRY_CLUSTERIP}/v2/" | grep -q " 200 OK"; do sleep 2; done
+    echo "(Press {RETURN} to stop waiting)"
+    while ! minikube --profile ${MINIKUBE_PROFILE} ssh "curl -sSI ${REGISTRY_CLUSTERIP}/v2/" | grep -q " 200 OK"; do
+        read -t 2 && break
+    done
 }
 
 
@@ -244,10 +258,10 @@ function build_SplunkImage() {
 
     banner "Building Splunk Docker image"
 
-    eval $(minikube docker-env) || exit 1
+    eval $(minikube --profile ${MINIKUBE_PROFILE} docker-env) || exit 1
     docker --log-level warn build -t ${REGISTRY_CLUSTERIP}/splunk_7:v1 . || exit 1
     docker --log-level warn push ${REGISTRY_CLUSTERIP}/splunk_7:v1 || exit 1
-    eval $(minikube docker-env --unset) || exit 1
+    eval $(minikube --profile ${MINIKUBE_PROFILE} docker-env --unset) || exit 1
 
     popd >/dev/null || exit 1
 }
@@ -265,42 +279,39 @@ function deploy_Splunk() {
         read -s -p "Enter value for 'splunkPassword' (minimum 8 characters, space characters NOT permitted): " splunkPassword; echo
     done
 
-    kubectl apply -f splunk-config.yaml || exit 1
+    kubectl --context=${MINIKUBE_PROFILE} apply -f splunk-config.yaml || exit 1
 
     local splunkEntSecCredentialsSPL="H.!"
     while [ ! -f "${splunkEntSecCredentialsSPL}" ]; do
-        read -p "Enter the full location of your Splunk Universal Forwarder Credentials file (e.g. /path/to/splunkclouduf.spl): " splunkEntSecCredentialsSPL; echo
+        read -p "Enter the full location of your Splunk Universal Forwarder Credentials file (default ${HOME}/Downloads/splunkclouduf.spl): " splunkEntSecCredentialsSPL; echo
+        splunkEntSecCredentialsSPL=${splunkEntSecCredentialsSPL:-${HOME}/Downloads/splunkclouduf.spl}
     done
 
     local splunkclouduf_spl=$(base64 -i "${splunkEntSecCredentialsSPL}") || exit 1
-    local splunkescreds_txt=$(echo "admin:$(cat ${SPLUNK_PASSWORD})"| base64 ) || exit 1
+    local splunkescreds_txt=$(echo "admin:${splunkPassword}"| base64 ) || exit 1
 
     [ -f splunk-secret.generated.yaml ] && rm splunk-secret.generated.yaml
 
     sed -e "s|{{SPLUNKCLOUDUF_SPL_CONTENTS_BASE64}}|${splunkclouduf_spl}|g" \
         -e "s|{{SPLUNKESCREDS_BASE64}}|${splunkescreds_txt}|g" \
         splunk-secret.templ.yaml >splunk-secret.generated.yaml || exit 1
-    kubectl apply -f splunk-secret.generated.yaml || exit 1
+    kubectl --context=${MINIKUBE_PROFILE} apply -f splunk-secret.generated.yaml || exit 1
 
     [ -f splunk-daemonset.generated.yaml ] && rm splunk-daemonset.generated.yaml
     sed -e "s/{{REGISTRY_IP}}/${REGISTRY_CLUSTERIP}/g" \
         -e "s/{{SPLUNK_PASSWORD}}/${splunkPassword}/g" \
         splunk-daemonset.templ.yaml >splunk-daemonset.generated.yaml || exit 1
-    kubectl apply -f splunk-daemonset.generated.yaml || exit 1
+    kubectl --context=${MINIKUBE_PROFILE} apply -f splunk-daemonset.generated.yaml || exit 1
 
-    kubectl apply -f splunk-service.yaml || exit 1
+    kubectl --context=${MINIKUBE_PROFILE} apply -f splunk-service.yaml || exit 1
 
     popd >/dev/null || exit 1
 }
 
 
 #####################################################################
-function deploy_PackagesToMinikube() {
+function deploy_Wordpress {
 #####################################################################
-    banner "Deploying packages to Minikube (profile: ${MINIKUBE_PROFILE})"
-
-    helm --kube-context=${MINIKUBE_PROFILE} init || exit 1
-
     local wordpressPassword
     local mariadbRootPassword
     local mariadbPassword
@@ -319,13 +330,28 @@ function deploy_PackagesToMinikube() {
          --set-string mariadbPassword="${mariadbPassword}" || exit 1
 }
 
+#####################################################################
+function deploy_PackagesToMinikube() {
+#####################################################################
+    banner "Deploying packages to Minikube (profile: ${MINIKUBE_PROFILE})"
+
+    helm --kube-context=${MINIKUBE_PROFILE} init || exit 1
+    kubectl --context=${MINIKUBE_PROFILE} -n kube-system rollout status deployment.apps/tiller-deploy -w
+
+    if [ $(helm status wordpress 2>/dev/null| grep Running | wc -l) -eq 2 ]; then
+        echo "Wordpress is already running"
+    else
+        deploy_Wordpress
+    fi
+}
+
 
 #####################################################################
 function display_minikube_services() {
 #####################################################################
     echo -e "\n"
     echo -e "\nMinikube IP: $(minikube --profile=${MINIKUBE_PROFILE} ip)"
-    minikube service list
+    minikube --profile ${MINIKUBE_PROFILE} service list
     echo -e "\nMinikube registry Service ClusterIP: ${REGISTRY_CLUSTERIP}"
 }
 

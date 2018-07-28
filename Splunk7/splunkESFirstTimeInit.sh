@@ -1,7 +1,14 @@
-#!/usr/bin/env bash
+#!/bin/bash
+
+RESTART_SPLUNK=1
+[ "x$1" == "x--no-restart" ] && RESTART_SPLUNK=0
+
 
 readonly COMPLETED_FIRST_TIME_INIT_FLAG="/opt/staging/splunkEnterprise/firstTimeInit.COMPLETED"
 failed=0
+if [ -z "${HOME}" ]; then
+    export HOME=/root
+fi
 
 
 if [ -f "${COMPLETED_FIRST_TIME_INIT_FLAG}" ]; then
@@ -15,7 +22,9 @@ fi
 echo "*******************************************************************************"
 echo "First time initialisation of SplunkES forwarding app"
 echo "*******************************************************************************"
-/opt/splunk/bin/splunk install app "/opt/staging/splunkEnterprise/security-tt/splunkclouduf.spl" -auth admin:$(cat "/opt/staging/splunkEnterprise/security-tt/splunkescreds.txt")
+echo
+echo "*** Installing splunkclouduf app"
+/opt/splunk/bin/splunk install app "/opt/staging/splunkEnterprise/security-tt/splunkclouduf.spl" -auth "$(cat "/opt/staging/splunkEnterprise/security-tt/splunkescreds.txt")"
 if [ $? -ne 0 ]; then
     echo "*******************************************************************************"
     echo "FATAL: Initialisation FAILED"
@@ -23,12 +32,16 @@ if [ $? -ne 0 ]; then
     failed=1
 fi
 
-/opt/splunk/bin/splunk restart
-if [ $? -ne 0 ]; then
-    echo "*******************************************************************************"
-    echo "FATAL: SplunkES restart FAILED"
-    echo "*******************************************************************************"
-    failed=1
+if [ "${RESTART_SPLUNK}" == "1" ]; then
+    echo "*** Restarting splunk to apply changes"
+    echo
+    /opt/splunk/bin/splunk restart
+    if [ $? -ne 0 ]; then
+        echo "*******************************************************************************"
+        echo "FATAL: SplunkES restart FAILED"
+        echo "*******************************************************************************"
+        failed=1
+    fi
 fi
 
 
