@@ -2,8 +2,6 @@
 
 Pen-testing playground lab.
 
-⚠️ Under construction ⚠️
-
 What you get:
 
   - ✅ Homebrew, VirtualBox, Docker, Vagrant, Minikube
@@ -13,11 +11,15 @@ What you get:
   - ✅ Integration with Splunk Enterprise Security
 
 To do:
-  - 🐣 Automation of Kali / Wordpress tunnels creation
   - ❎ Phantom (Community edition of Splunk Enterprise Security) (VirtualBox)
   - ❎ Add CPU and RAM limits to K8s pods
 
 ## Pre-requisites
+
+### Recommended machine specifications
+
+  - 16 GB RAM
+  - 8 core CPU
 
 ### Splunk Enterprise Security
 
@@ -27,10 +29,18 @@ Sign up for the Trial (Cloud):
 
 ### Phantom (Community edition of Splunk Enterprise Security)
 
-  - Register at https://www.phantom.us/download/
+  - Register at:
+    - https://www.phantom.us/download/
   - Download the VM
   - Install it (VirtualBox recommended for network reasons since the rest of this project currently uses VirtualBox)
 
+#### Phantom app for Splunk
+
+  - Download the Phantom app for Splunk from SplunkBase:
+    - https://splunkbase.splunk.com/app/3411/
+  - Installation instructions at:
+    - https://<phantom_vm_ip>/docs/admin/splunk
+  
 ### Download your Universal Forwarder Credentials from your Splunk Enterprise Security / Phantom instance
 
 Once your instance of SES or Phantom is running, log on to its Web UI.
