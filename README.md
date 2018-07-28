@@ -10,7 +10,8 @@ What you (will) get:
   - ✅ Kali Linux (in VirtualBox)
   - ✅ Slunk (Minikube K8s cluster)
   - ✅ Wordpress (Minikube K8s cluster)
-  - 🐣 Integration with Splunk Enterprise Security
+  - ✅ Integration with Splunk Enterprise Security
+  - 🐣 Automation of Kali / Wordpress tunnels creation
   - ❎ Phantom (Community edition of Splunk Enterprise Security) (VirtualBox)
 
 ## Pre-requisites
@@ -124,6 +125,18 @@ vagrant box add kali-linux file:///d:/path/to/csi_kali/vmware_desktop.box
 ### NATPF and SSH Tunnels
 
 Below are some options that also exist to create network configurations that may be useful in some advanced situations.
+
+#### SSH tunnel
+
+```bash
+# expose access to wordpress inside minikube via localhost:30100 (this could also be done with kubectl port-forward)
+ssh -i ~/.minikube/machines/<profile_name>/id_rsa -L 30100:localhost:30100 -N docker@`minikube --profile=<profile_name> ip`
+
+# enable access to wordpress inside minikube via localhost:30100 from within Kali Linux
+vagrant ssh -- -R 30100:localhost:30100 -N
+```
+
+Together, these two commands effectively create a bridge between Kali Linux and the wordpress service running inside Minikube.
 
 #### Utility `pfctl` (Mac OSX)
 
