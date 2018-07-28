@@ -70,6 +70,7 @@ Notes:
     - For instance, with Firefox: Click the padlock icon on the left of the URL > Click the arrow next to the IP address (if you're using the IP as I am) > More information (at the bottom) > Security tab > View Certificate > in the next open that opens > Details > Export
     - Copy this to your Splunk machine in $SPLUNK_HOME/etc/apps/phantom/local/cert_bundle.pem
     - Now return to Splunk's Web UI and save your "Phantom Server Configuration" again. This should be accepted. No restart required.
+    - If you get stuck, you could disable HTTPS verification in `$SPLUNK_HOME/etc/apps/phantom/local/phantom.conf`
   - App: Phantom -> Phantom Server Configuration:
   
     Could not communicate with Phantom server "https://a.b.c.d": hostname 'a.b.c.d' doesn't match u'phantom'
