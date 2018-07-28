@@ -4,15 +4,18 @@ Pen-testing playground lab.
 
 ⚠️ Under construction ⚠️
 
-What you (will) get:
+What you get:
 
   - ✅ Homebrew, VirtualBox, Docker, Vagrant, Minikube
   - ✅ Kali Linux (in VirtualBox)
   - ✅ Slunk (Minikube K8s cluster)
   - ✅ Wordpress (Minikube K8s cluster)
   - ✅ Integration with Splunk Enterprise Security
+
+To do:
   - 🐣 Automation of Kali / Wordpress tunnels creation
   - ❎ Phantom (Community edition of Splunk Enterprise Security) (VirtualBox)
+  - ❎ Add CPU and RAM limits to K8s pods
 
 ## Pre-requisites
 
