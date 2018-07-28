@@ -21,11 +21,23 @@ To do:
   - 16 GB RAM
   - 8 core CPU
 
-### Splunk Enterprise Security
+### Splunk Enterprise Security (current solution)
 
 Sign up for the Trial (Cloud):
 
   - https://www.splunk.com/page/sign_up/es_sandbox?redirecturl=%2Fgetsplunk%2Fes_sandbox
+
+### Download your Universal Forwarder Credentials from your Splunk Enterprise Security / Phantom instance (for explorers only ☺️)
+
+Once your instance of SES or Phantom is running, log on to its Web UI.
+
+The set-up script needs your SUF credentials to forward events from the Minikube K8s cluster's Splunk instance.
+
+In SES:
+
+  - Click Apps in the menu bar at the top of the web page > Universal Forwarder
+  - Click the 'Download Universal Forwarder Credentials' button, point number 3 (at time of writing).
+  - This will download a file called `splunkclouduf.spl`. Keep it handy, you'll use it during set-up.
 
 ### Phantom (Community edition of Splunk Enterprise Security)
 
@@ -68,18 +80,6 @@ Notes:
         - "server": "https://phantom"
 
   
-### Download your Universal Forwarder Credentials from your Splunk Enterprise Security / Phantom instance
-
-Once your instance of SES or Phantom is running, log on to its Web UI.
-
-The set-up script needs your SUF credentials to forward events from the Minikube K8s cluster's Splunk instance.
-
-In SES:
-
-  - Click Apps in the menu bar at the top of the web page > Universal Forwarder
-  - Click the 'Download Universal Forwarder Credentials' button, point number 3 (at time of writing).
-  - This will download a file called `splunkclouduf.spl`. Keep it handy, you'll use it during set-up.
-
 ## Set up instructions
 
 To set up the lab, run:
