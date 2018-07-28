@@ -25,7 +25,7 @@ Sign up for the Trial (Cloud):
 
   - https://www.splunk.com/page/sign_up/es_sandbox?redirecturl=%2Fgetsplunk%2Fes_sandbox
 
-### Community edition (currently being explored)
+### Phantom (Community edition of Splunk Enterprise Security)
 
   - Register at https://www.phantom.us/download/
   - Download the VM
@@ -55,10 +55,12 @@ And follow the instructions the script displays.
 
 ### Configuration options
 
-Some default settings may be overridden via shell variables.
+Some default settings may be overridden via shell variables:
 
-`MINIKUBE_PROFILE`: the Minikube profile name. NOTE: several versions of Minikube (e.g. 0.27, 0.28) fail unless the profile name is `minikube`.
-`MINIKUBE_VM_DRIVER`: the Minikube VM driver.
+  - `MINIKUBE_PROFILE`: the Minikube profile name.
+
+    NOTE: several versions of Minikube (e.g. 0.27, 0.28) fail unless the profile name is `minikube`.
+  - `MINIKUBE_VM_DRIVER`: the Minikube VM driver.
 
 ```bash
 # Example
@@ -66,6 +68,7 @@ MINIKUBE_VM_DRIVER=hyperkit MINIKUBE_PROFILE=example-profile ./scripts/setup.sh
 ```
 
 Note:
+
 - changing `MINIKUBE_VM_DRIVER` may cause issues if Kali Linux is not running in the same Hypervisor.
 
   You will need to use a NATPF set-up or a tunnelling solution to allow Kali to access the Minikube VM.
@@ -80,8 +83,8 @@ You can also use vagrant ssh and change the password of the vagrant user to a de
 
 Useful reference:
 
-- https://www.kali.org/news/kali-linux-metapackages/
-- https://tools.kali.org/tools-listing
+  - https://www.kali.org/news/kali-linux-metapackages/
+  - https://tools.kali.org/tools-listing
 
 ## Splunk Enterprise
 
