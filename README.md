@@ -59,7 +59,7 @@ Notes:
     - Now return to Splunk's Web UI and save your "Phantom Server Configuration" again. This should be accepted. No restart required.
   - App: Phantom -> Phantom Server Configuration:
   
-    Could not communicate with Phantom server "https://192.168.0.14": hostname 'a.b.c.d' doesn't match u'phantom'
+    Could not communicate with Phantom server "https://a.b.c.d": hostname 'a.b.c.d' doesn't match u'phantom'
       - Log onto the Splunk container
       - Edit /etc/hosts
       - Add: `a.b.c.d phantom`,  a.b.c.d should be the actual IP of the Phantom machine
