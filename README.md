@@ -113,7 +113,7 @@ Note:
 
 ## Kali Linux
 
-At time of writing, the default credentials are user `vagrant` and password `changeme`.
+The credentials are user `vagrant` and the password will need to be set at first logon.
 
 To access the root user, use `sudo -s`.
 

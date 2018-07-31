@@ -1,6 +1,6 @@
 Vagrant.configure("2") do |config|
-  config.vm.box = "csi/kali_rolling"
-  config.vm.box_version = "2018.2.2"
+  config.vm.box = "seborama/kali_linux_2018.2"
+  config.vm.box_version = "1.0.0"
 
   config.vm.provider "virtualbox" do |vb|
     vb.memory = "2048"
