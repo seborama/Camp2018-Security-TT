@@ -122,7 +122,7 @@ mariadb:
     ##
     # storageClass: "-"
     accessMode: ReadWriteOnce
-    size: 1Gi
+    size: 100Mi
 
 ## Kubernetes configuration
 ## For minikube, set this to NodePort, elsewhere use LoadBalancer or ClusterIP
@@ -229,7 +229,7 @@ persistence:
   ## We recommend that you install the nfs provisioner and map it to a RWO volume
   ## helm install stable/nfs-server-provisioner --set persistence.enabled=true,persistence.size=10Gi
   accessMode: ReadWriteMany
-  size: 1Gi
+  size: 100Mi
 
 ## Configure resource requests and limits
 ## ref: http://kubernetes.io/docs/user-guide/compute-resources/
@@ -238,6 +238,9 @@ resources:
   requests:
     memory: 512Mi
     cpu: 300m
+  limits:
+    memory: 2048Mi
+    cpu: "1.5"
 
 ## Node labels for pod assignment
 ## Ref: https://kubernetes.io/docs/user-guide/node-selection/

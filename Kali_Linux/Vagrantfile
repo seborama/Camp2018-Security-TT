@@ -1,8 +1,12 @@
+# https://www.vagrantup.com/docs/boxes/base.html
 Vagrant.configure("2") do |config|
   config.vm.box = "seborama/kali_linux_2018.2"
-  config.vm.box_version = "1.0.0"
+  config.vm.box_version = "1.2.0"
+
+  #config.vm.network "private_network", type: "dhcp"
 
   config.vm.provider "virtualbox" do |vb|
+    #vb.gui = true
     vb.memory = "2048"
     vb.cpus = "2"
     vb.customize ["modifyvm", :id, "--vram", "64"]

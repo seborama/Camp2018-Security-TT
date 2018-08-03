@@ -2,8 +2,8 @@
 .idea/
 *.swp
 /Kali_Linux/.vagrant/
-/Splunk/splunk-*.deb
+splunk-*.deb
 /Splunk/.vagrant/
-/SplunkForwarder/splunk-forwarder-daemonset.generated.yaml
-/Splunk7/splunk-daemonset.generated.yaml
-/Splunk7/splunk-secret.generated.yaml
+*.generated.yaml
+package.box
+/Kali_Linux/Vagrantfile-ORG

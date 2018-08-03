@@ -195,8 +195,7 @@ function createAndRun_Minikube() {
                  --cpus=4 || exit 1
 
         minikube --profile ${MINIKUBE_PROFILE} addons enable registry || exit 1
-        minikube --profile ${MINIKUBE_PROFILE} addons disable heapster &>/dev/null
-        minikube --profile ${MINIKUBE_PROFILE} addons disable metrics-server &>/dev/null
+        minikube --profile ${MINIKUBE_PROFILE} addons enable heapster || exit 1 # this allows "kubectl top pod" and "kubectl top node"
     fi
 
     echo -e "\nMinikube IP: $(minikube --profile=${MINIKUBE_PROFILE} ip)"
@@ -282,20 +281,24 @@ function deploy_Splunk() {
     kubectl --context=${MINIKUBE_PROFILE} apply -f splunk-config.yaml || exit 1
 
     local splunkEntSecCredentialsSPL="H.!"
-    while [ ! -f "${splunkEntSecCredentialsSPL}" ]; do
-        read -p "Enter the full location of your Splunk Universal Forwarder Credentials file (default ${HOME}/Downloads/splunkclouduf.spl): " splunkEntSecCredentialsSPL; echo
+    while [ ! -f "${splunkEntSecCredentialsSPL}" ] && [  "${splunkEntSecCredentialsSPL}" != "none" ]; do
+        echo "This step will forward events received by Splunk to your Splunk Enterprise Security server"
+        echo "Note that Phantom requires different steps (manual)"
+        read -p "Enter the full location of your Splunk Universal Forwarder Credentials file (default ${HOME}/Downloads/splunkclouduf.spl) (type 'none' to skip): " splunkEntSecCredentialsSPL; echo
         splunkEntSecCredentialsSPL=${splunkEntSecCredentialsSPL:-${HOME}/Downloads/splunkclouduf.spl}
     done
 
-    local splunkclouduf_spl=$(base64 -i "${splunkEntSecCredentialsSPL}") || exit 1
-    local splunkescreds_txt=$(echo "admin:${splunkPassword}"| base64 ) || exit 1
+    if [  "${splunkEntSecCredentialsSPL}" != "none" ]; then
+        local splunkclouduf_spl=$(base64 -i "${splunkEntSecCredentialsSPL}") || exit 1
+        local splunkescreds_txt=$(echo "admin:${splunkPassword}"| base64 ) || exit 1
 
-    [ -f splunk-secret.generated.yaml ] && rm splunk-secret.generated.yaml
+        [ -f splunk-secret.generated.yaml ] && rm splunk-secret.generated.yaml
 
-    sed -e "s|{{SPLUNKCLOUDUF_SPL_CONTENTS_BASE64}}|${splunkclouduf_spl}|g" \
-        -e "s|{{SPLUNKESCREDS_BASE64}}|${splunkescreds_txt}|g" \
-        splunk-secret.templ.yaml >splunk-secret.generated.yaml || exit 1
-    kubectl --context=${MINIKUBE_PROFILE} apply -f splunk-secret.generated.yaml || exit 1
+        sed -e "s|{{SPLUNKCLOUDUF_SPL_CONTENTS_BASE64}}|${splunkclouduf_spl}|g" \
+            -e "s|{{SPLUNKESCREDS_BASE64}}|${splunkescreds_txt}|g" \
+            splunk-secret.templ.yaml >splunk-secret.generated.yaml || exit 1
+        kubectl --context=${MINIKUBE_PROFILE} apply -f splunk-secret.generated.yaml || exit 1
+    fi
 
     [ -f splunk-daemonset.generated.yaml ] && rm splunk-daemonset.generated.yaml
     sed -e "s/{{REGISTRY_IP}}/${REGISTRY_CLUSTERIP}/g" \

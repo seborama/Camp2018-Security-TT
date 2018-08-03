@@ -48,12 +48,13 @@ In SES:
 
 #### Phantom app for Splunk
 
+This is not currently automated.
+
   - Download the Phantom app for Splunk from SplunkBase:
     - https://splunkbase.splunk.com/app/3411/
   - Installation instructions at:
     - https://<phantom_vm_ip>/docs/admin/splunk
-  - ⚠️ As Splunk connects to Phantom via a dedicated Splunk App, no SPL file is used. This means that the set-up steps with the scripts will need to be amended.
-
+  
 Notes:
 
   - App: Phantom -> Phantom Server Configuration:
@@ -113,7 +114,7 @@ Note:
 
 ## Kali Linux
 
-The credentials are user `vagrant` and the password will need to be set at first logon.
+The login user is `vagrant` and the password will need to be set at first logon.
 
 To access the root user, use `sudo -s`.
 
@@ -147,7 +148,7 @@ This is not needed and only to satisfy your curiosity or to explore Splunk furth
 
 Register for a trial at:
 
-- https://www.splunk.com/en_us/download/splunk-enterprise/thank-you-enterprise.html
+  - https://www.splunk.com/en_us/download/splunk-enterprise/thank-you-enterprise.html
 
 ```bash
 wget -O splunk-7.1.1-8f0ead9ec3db-linux-2.6-amd64.deb 'https://www.splunk.com/bin/splunk/DownloadActivityServlet?architecture=x86_64&platform=linux&version=7.1.1&product=splunk&filename=splunk-7.1.1-8f0ead9ec3db-linux-2.6-amd64.deb&wget=true'
@@ -155,13 +156,21 @@ wget -O splunk-7.1.1-8f0ead9ec3db-linux-2.6-amd64.deb 'https://www.splunk.com/bi
 
 ## Advanced Topics
 
+### Vagrant base boxes
+
+Useful links:
+
+  - https://www.vagrantup.com/docs/boxes/base.html
+
+  - https://www.engineyard.com/blog/building-a-vagrant-box-from-start-to-finish
+
 ### Vagrant and VMWare Fusion
 
 This requires a commercial addon.
 
 Alternatively, you can download the .box file from:
 
-- https://app.vagrantup.com/csi/boxes/kali_rolling/versions/2018.2.2/providers/vmware_desktop.box
+  - https://app.vagrantup.com/csi/boxes/kali_rolling/versions/2018.2.2/providers/vmware_desktop.box
 
 Extract the contents and manually install.
 
@@ -193,7 +202,7 @@ Control the packet filter (PF) and network address translation (NAT) device.
 
 See an example use here:
 
-https://apple.stackexchange.com/questions/296520/port-forwarding-on-mac-pro-with-macos-sierra
+  - https://apple.stackexchange.com/questions/296520/port-forwarding-on-mac-pro-with-macos-sierra
 
 The pfdump.sh script has been included to this repo for convenience (under the directory `scripts`).
      
@@ -224,7 +233,7 @@ sudo /Applications/VMware\ Fusion.app/Contents/Library/vmnet-cli --start
 
 More information:
 
-- http://networkinferno.net/port-forwarding-on-vmware-fusion
+  - - http://networkinferno.net/port-forwarding-on-vmware-fusion
 
 #### VirtualBox Fusion NATPF
 
