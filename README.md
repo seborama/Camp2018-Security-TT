@@ -114,11 +114,9 @@ Note:
 
 ## Kali Linux
 
-The login user is `vagrant` and the password will need to be set at first logon.
+The login user is `vagrant` and the password is `vagrant`, change it manually after the first logon.
 
 To access the root user, use `sudo -s`.
-
-You can also use vagrant ssh and change the password of the vagrant user to a desired value.
 
 Useful reference:
 
