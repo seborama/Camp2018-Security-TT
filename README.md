@@ -20,6 +20,7 @@ To do:
 
   - 16 GB RAM
   - 8 core CPU
+  - 30 GB storage
 
 ### Splunk Enterprise Security (current solution)
 
