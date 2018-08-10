@@ -8,6 +8,6 @@ spec:
     app: splunk-app
   type: NodePort
   ports:
-  - nodePort: 30800
+  - nodePort: 30700
     port: 8000
     targetPort: 8000

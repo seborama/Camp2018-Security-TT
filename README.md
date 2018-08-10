@@ -84,7 +84,9 @@ Note:
 
 The login user is `vagrant` and the password is `vagrant`, change it manually after the first logon.
 
-To access the root user, use `sudo -s`.
+You can log on using `vagrant ssh` (from the Kali_Linux directory) or you can use the Gnome desktop via the VirtualBox Manager (i.e. the VirtualBox icon in your OSX Application).
+
+To access the root user, use `sudo -s` form a terminal window.
 
 Useful reference:
 
@@ -98,7 +100,7 @@ You can access the Wordpress service from Kali on:
 
 ### Splunk Enterprise
 
-Splunk runs on the Minikube IP on port 30800.
+Splunk is exposed on the Minikube IP on port 30700.
 
 The Minikube IP is displayed during the set-up. After that you can run this command to find it again:
 
