@@ -42,6 +42,8 @@ In SES:
 
 ### Phantom (Community edition of Splunk Enterprise Security)
 
+**This is an optional alternative to SES, set-up and configuration are manual.**
+
   - Register at:
     - https://www.phantom.us/download/
   - Download the VM

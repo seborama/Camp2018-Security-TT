@@ -215,8 +215,6 @@ function createAndRun_Minikube() {
 
     banner "Creating and running Minikube (profile: ${MINIKUBE_PROFILE})"
 
-    eval $(minikube --profile ${MINIKUBE_PROFILE} docker-env --unset) || exit 1
-
     local keepExisting=0
 
     if [ -d "${installDir}" ]; then
@@ -241,11 +239,13 @@ function createAndRun_Minikube() {
                  start \
                  --vm-driver=${MINIKUBE_VM_DRIVER} \
                  --memory=8192 \
-                 --cpus=4 || exit 1
+                 --cpus=4  || exit 1
 
         minikube --profile ${MINIKUBE_PROFILE} addons enable registry || exit 1
         minikube --profile ${MINIKUBE_PROFILE} addons enable metrics-server || exit 1 # this allows "kubectl top pod" and "kubectl top node"
     fi
+
+    eval $(minikube --profile ${MINIKUBE_PROFILE} docker-env --unset) || exit 1
 
     echo -e "\nMinikube IP: $(minikube --profile=${MINIKUBE_PROFILE} ip)"
 }
