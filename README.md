@@ -26,7 +26,7 @@ To do:
 
 ### Splunk Enterprise Security (aka "SES")
 
-This is simpler than setting up Phantom (see separate document in the [docs](docs) folder) but currently the trial only lasts 7 days...
+This is simpler than setting up Phantom (see separate document in the [docs](docs/Phantom.md) folder) but currently the trial only lasts 7 days...
 
 Sign up for the Trial (Cloud):
 
