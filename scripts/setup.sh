@@ -38,6 +38,34 @@ function isHomebrewAvailable() {
 
 
 #####################################################################
+function isAlreadyOSXInstalled() {
+#####################################################################
+    local appName=$1
+
+    if /System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister -dump 2>&1 | grep -q "${appName}" ; then
+        echo "Skipping: '${appName}' is already installed"
+        return ${OK}
+    fi
+
+    return ${NOK}
+}
+
+
+#####################################################################
+function isAlreadyAvailableOnCLI() {
+#####################################################################
+    local appName=$1
+
+    if which -s "${appName}"; then
+        echo "'${appName}' is already available on the CLI. Skipping this step"
+        return ${OK}
+    fi
+
+    return ${NOK}
+}
+
+
+#####################################################################
 function brew_install() {
 #####################################################################
     local package=${1:-Missing package argument in function `$FUNCNAME[0]`}
@@ -86,6 +114,7 @@ function install_VirtualBox() {
 #####################################################################
     banner "Installing VirtualBox"
 
+    isAlreadyOSXInstalled "VirtualBox" && return
     brew_cask_install virtualbox || exit 1
     brew_cask_install virtualbox-extension-pack || exit 1
 }
@@ -96,6 +125,7 @@ function install_Vagrant() {
 #####################################################################
     banner "Installing Vagrant"
 
+    isAlreadyAvailableOnCLI "vagrant" && return
     brew_cask_install vagrant || exit 1
     brew_install vagrant-completion || exit 1
 }
@@ -129,6 +159,7 @@ function install_kubernetes_cli() {
 #####################################################################
     banner "Installing kubernetes-cli"
 
+    isAlreadyAvailableOnCLI "kubectl" && return
     brew_install kubernetes-cli || exit 1
 }
 
@@ -138,6 +169,7 @@ function install_Helm() {
 #####################################################################
     banner "Installing Helm"
 
+    isAlreadyAvailableOnCLI "helm" && return
     brew_install kubernetes-helm || exit 1
 }
 
@@ -147,6 +179,7 @@ function install_Minikube() {
 #####################################################################
     banner "Installing Minikube"
 
+    isAlreadyAvailableOnCLI "minikube" && return
     brew_cask_install minikube || exit 1
 }
 
@@ -156,6 +189,7 @@ function install_Docker() {
 #####################################################################
     banner "Installing Docker"
 
+    isAlreadyOSXInstalled "Docker" && isAlreadyAvailableOnCLI "docker" && return
     brew_cask_install docker || exit 1
     brew_install docker-completion || exit 1
 }
