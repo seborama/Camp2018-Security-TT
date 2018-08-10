@@ -102,10 +102,11 @@ Useful reference:
   - https://tools.kali.org/tools-listing
   
 You can access the Wordpress service from Kali on:
+
   - http://`minikube_ip`:30100
-    - e.g.: `http://192.168.99.100:30100`
+    - e.g.: http://192.168.99.100:30100
   - https://`minikube_ip`:30101
-    - e.g.: `https://192.168.99.100:30101`
+    - e.g.: https://192.168.99.100:30101
     - you will likely require to export the cert from wordpress and import it where necessary.
 
 ### Splunk Enterprise
@@ -113,6 +114,6 @@ You can access the Wordpress service from Kali on:
 Splunk is exposed at:
 
   - http://`minikube_ip`:30700
-    - e.g.: `http://192.168.99.100:30700`
+    - e.g.: http://192.168.99.100:30700
 
 Log in the Web UI as user `admin` with the password you keyed in during set-up.
