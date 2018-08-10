@@ -80,6 +80,14 @@ Note:
 
 ## Practical operational information
 
+### Minikube IP
+
+The Minikube IP is displayed during the set-up. After that you can run this command to find it again:
+
+```bash
+minikube ip
+```
+
 ### Kali Linux
 
 The login user is `vagrant` and the password is `vagrant`, change it manually after the first logon.
@@ -94,18 +102,14 @@ Useful reference:
   - https://tools.kali.org/tools-listing
   
 You can access the Wordpress service from Kali on:
-  - http://<`minikube ip>`:30100
-  - https://<`minikube ip>`:30101
+  - http://`minikube ip`:30100
+  - https://`minikube ip`:30101
     - (you will likely require to export the cert from wordpress and import it where necessary)
 
 ### Splunk Enterprise
 
-Splunk is exposed on the Minikube IP on port 30700.
+Splunk is exposed at:
 
-The Minikube IP is displayed during the set-up. After that you can run this command to find it again:
-
-```bash
-minikube ip
-```
+  - http://`minikube ip`:30700
 
 Log in the Web UI as user `admin` with the password you keyed in during set-up.
