@@ -9,11 +9,10 @@ What you get:
   - ✅ Slunk (Minikube K8s cluster)
   - ✅ Wordpress (Minikube K8s cluster)
   - ✅ Integration with Splunk Enterprise Security
-  - ✅ (manual) Phantom (Community edition of Splunk Enterprise Security) (VirtualBox)
-  - ✅ Add CPU and RAM limits to K8s pods
+  - ✅ Documentation notes for manual installation of Phantom (Community edition of Splunk Enterprise Security)
 
 To do:
-  - ❎ Improve README
+
   - ❎ Add an architecture diagram
 
 ## Pre-requisites
