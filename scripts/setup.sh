@@ -244,7 +244,7 @@ function createAndRun_Minikube() {
                  --cpus=4 || exit 1
 
         minikube --profile ${MINIKUBE_PROFILE} addons enable registry || exit 1
-        minikube --profile ${MINIKUBE_PROFILE} addons enable heapster || exit 1 # this allows "kubectl top pod" and "kubectl top node"
+        minikube --profile ${MINIKUBE_PROFILE} addons enable metrics-server || exit 1 # this allows "kubectl top pod" and "kubectl top node"
     fi
 
     echo -e "\nMinikube IP: $(minikube --profile=${MINIKUBE_PROFILE} ip)"
