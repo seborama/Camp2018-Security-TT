@@ -29,10 +29,20 @@ function banner() {
 
 
 #####################################################################
+function isHomebrewAvailable() {
+#####################################################################
+    which -s brew && return ${OK}
+    echo "Homebrew is not installed. Skipping this step - you must proceed manually"
+    return ${NOK}
+}
+
+
+#####################################################################
 function brew_install() {
 #####################################################################
     local package=${1:-Missing package argument in function `$FUNCNAME[0]`}
 
+    isHomebrewAvailable || return
     brew list "${package}" &>/dev/null || brew install "${package}" || exit 1
     echo Done
 }
@@ -43,6 +53,7 @@ function brew_cask_install() {
 #####################################################################
     local package=${1:-Missing package argument in function `$FUNCNAME[0]`}
 
+    isHomebrewAvailable || return
     brew cask list "${package}" &>/dev/null || brew cask install "${package}" || exit 1
     echo Done
 }
@@ -57,10 +68,14 @@ function install_brew() {
 
     echo "Homebrew is a pre-requisite but I can't locate your installation."
     local choice
-    read -p "Perform installation homebrew (y/N)? " choice
-    [[ ! "${choice}" =~ ^[Yy1]$ ]] || exit 1
+    read -p "Perform homebrew installation (y/N)? " choice
+    if [[ ! "${choice}" =~ ^[Yy1]$ ]]; then
+        echo "OK, you will need to install the required software (Docker, Vagrant, etc) yourself"
+        return
+    fi
 
     /usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)" || exit 1
+    brew analytics off
     brew update || exit 1
     echo Done
 }
