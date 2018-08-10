@@ -36,7 +36,7 @@ Sign up for the Trial (Cloud):
 
 Once your instance of SES is running, log on to its Web UI.
 
-This project's set-up script needs your SES Universal Forwarder credentials to enable the Minikube K8s cluster's Splunk instance to send events to SES.
+To enable the Minikube K8s cluster's Splunk instance to send events to SES's, you will need your SES Universal Forwarder credentials.
 
 In SES:
 
@@ -52,7 +52,7 @@ To set up the lab, run:
 ./scripts/setup.sh
 ```
 
-And follow the instructions the script displays.
+and follow the instructions the script displays.
 
 At the end of the process, the script will display useful operational information.
 
