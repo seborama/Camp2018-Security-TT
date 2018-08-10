@@ -1,5 +1,27 @@
 ## Advanced Topics
 
+### Optional `setup.sh` configuration options
+
+This information is for experimentation and completeness only.
+
+Some default settings may be overridden via shell variables (this is **not** recommended):
+
+  - `MINIKUBE_PROFILE`: the Minikube profile name.
+
+    NOTE: several versions of Minikube (e.g. 0.27, 0.28) fail unless the profile name is `minikube`.
+  - `MINIKUBE_VM_DRIVER`: the Minikube VM driver.
+
+```bash
+# Example
+MINIKUBE_VM_DRIVER=hyperkit MINIKUBE_PROFILE=example-profile ./scripts/setup.sh
+```
+
+Note:
+
+- changing `MINIKUBE_VM_DRIVER` may cause issues if Kali Linux is not running in the same Hypervisor.
+
+  You will also need to use a NATPF set-up or a tunnelling solution to allow Kali to access the Minikube VM.
+
 ### Vagrant base boxes
 
 Useful links:
