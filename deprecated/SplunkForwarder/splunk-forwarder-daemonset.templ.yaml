@@ -15,6 +15,13 @@ spec:
       containers:
       - name: splunk-forwarder-pod
         image: {{REGISTRY_IP}}/splunk_fwdr_7:v1
+        resources:
+          limits:
+            memory: 2048Mi
+            cpu: "1.5"
+          requests:
+            memory: 512Mi
+            cpu: "0.5"
         env:
         - name: SPLUNK_START_ARGS
           value: "--accept-license --answer-yes"
