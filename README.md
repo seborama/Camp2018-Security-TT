@@ -34,7 +34,7 @@ Sign up for the Trial (Cloud):
 
 ### Splunk Enterprise Security (aka "SES") Forwarder Credentials
 
-To enable the Minikube K8s cluster's Splunk instance to send events to SES's, you will need your SES Universal Forwarder credentials.
+To enable the Minikube K8s cluster's Splunk instance to send events to SES, you will need your SES Universal Forwarder credentials.
 
 Once your instance of SES is running, log on to its Web UI, and:
 
