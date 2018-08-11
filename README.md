@@ -4,17 +4,17 @@ Pen-testing playground lab.
 
 What you get:
 
-  - ✅ Homebrew, VirtualBox, Docker, Vagrant, Minikube
-  - ✅ Kali Linux (in VirtualBox)
-  - ✅ Slunk (Minikube K8s cluster)
-  - ✅ Wordpress (Minikube K8s cluster)
-  - ✅ Integration with Splunk Enterprise Security
-  - ✅ [Documentation notes](docs/Phantom.md) for manual installation of Phantom (Community edition of Splunk Enterprise Security)
-  - ✅ [Documentation for advanced topics](docs/Advanced%20topics.md) such as Vagrant with VMWare, tunnels, etc
+  - Homebrew, VirtualBox, Docker, Vagrant, Minikube
+  - Kali Linux (in VirtualBox)
+  - Slunk (Minikube K8s cluster)
+  - Wordpress (Minikube K8s cluster)
+  - Integration with Splunk Enterprise Security
+  - [Documentation notes](docs/Phantom.md) for manual installation of Phantom (Community edition of Splunk Enterprise Security)
+  - [Documentation for advanced topics](docs/Advanced%20topics.md) such as Vagrant with VMWare, tunnels, etc
 
 To do:
 
-  - ❎ Add an architecture diagram
+  - Add an architecture diagram
 
 ## Pre-requisites
 
