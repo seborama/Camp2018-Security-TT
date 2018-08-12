@@ -14,10 +14,6 @@ What you get:
   - [Documentation notes](docs/Phantom.md) for manual installation of Phantom (Community edition of Splunk Enterprise Security)
   - [Documentation for advanced topics](docs/Advanced%20topics.md) such as Vagrant with VMWare, tunnels, etc
 
-To do:
-
-  - Add an architecture diagram
-
 ## Pre-requisites
 
 ### Recommended hardware specifications
