@@ -4,17 +4,17 @@ Pen-testing playground lab.
 
 What you get:
 
-  - ✅ Homebrew, VirtualBox, Docker, Vagrant, Minikube
-  - ✅ Kali Linux (in VirtualBox)
-  - ✅ Slunk (Minikube K8s cluster)
-  - ✅ Wordpress (Minikube K8s cluster)
-  - ✅ Integration with Splunk Enterprise Security
-  - ✅ [Documentation notes](docs/Phantom.md) for manual installation of Phantom (Community edition of Splunk Enterprise Security)
-  - ✅ [Documentation for advanced topics](docs/Advanced%20topics.md) such as Vagrant with VMWare, tunnels, etc
+  - Homebrew, VirtualBox, Docker, Vagrant, Minikube
+  - Kali Linux (in VirtualBox)
+  - Slunk (Minikube K8s cluster)
+  - Wordpress (Minikube K8s cluster)
+  - Integration with Splunk Enterprise Security
+  - [Documentation notes](docs/Phantom.md) for manual installation of Phantom (Community edition of Splunk Enterprise Security)
+  - [Documentation for advanced topics](docs/Advanced%20topics.md) such as Vagrant with VMWare, tunnels, etc
 
 To do:
 
-  - ❎ Add an architecture diagram
+  - Add an architecture diagram
 
 ## Pre-requisites
 
@@ -34,19 +34,17 @@ Sign up for the Trial (Cloud):
 
 ### Splunk Enterprise Security (aka "SES") Forwarder Credentials
 
-Once your instance of SES is running, log on to its Web UI.
+To enable the Minikube K8s cluster's Splunk instance to send events to SES, you will need your SES Universal Forwarder credentials.
 
-To enable the Minikube K8s cluster's Splunk instance to send events to SES's, you will need your SES Universal Forwarder credentials.
-
-In SES:
+Once your instance of SES is running, log on to its Web UI, and:
 
   - Click Apps in the menu bar at the top of the web page > Universal Forwarder
   - Click the 'Download Universal Forwarder Credentials' button, point number 3 (at time of writing).
   - This will download a file called `splunkclouduf.spl`. Keep it handy, you'll use it during set-up.
 
-## Set up instructions
+## Local set up instructions
 
-To set up the lab, run:
+To set up the lab on OSX, run:
 
 ```bash
 ./scripts/setup.sh
