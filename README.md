@@ -2,6 +2,8 @@
 
 Pen-testing playground lab.
 
+[](docs/SecurityTT_Camp_2018_PoC_50pc.jpg)
+
 What you get:
 
   - Homebrew, VirtualBox, Docker, Vagrant, Minikube
