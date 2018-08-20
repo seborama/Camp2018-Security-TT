@@ -3,8 +3,6 @@
 #####################################################################
 # Global Environment Variables
 #####################################################################
-readonly SCRIPT_HOME="$(pushd $(dirname $0)/.. >/dev/null ; echo ${PWD})"
-
 readonly K8S_NAMESPACE="security-tt"
 #readonly MINIKUBE_PROFILE="${MINIKUBE_PROFILE:-minikubesecuritytt}"
 readonly MINIKUBE_PROFILE="minikube"
@@ -12,112 +10,6 @@ readonly MINIKUBE_PROFILE="minikube"
     read -p "Note: using a profile name other than minikube may cause stability issues with some versions of minikube"
 
 readonly MINIKUBE_VM_DRIVER="${MINIKUBE_VM_DRIVER:-virtualbox}"
-
-readonly OK=0
-readonly NOK=1
-
-
-#####################################################################
-function banner() {
-#####################################################################
-    local message=${1:-Missing message argument in function `$FUNCNAME[0]`}
-
-    echo -e "\n\n*********************************************************************"
-    echo -e "*** ${message}"
-    echo -e "*********************************************************************\n"
-}
-
-
-#####################################################################
-function isHomebrewAvailable() {
-#####################################################################
-    which -s brew && return ${OK}
-    echo "Homebrew is not installed. Skipping this step - you must proceed manually"
-    return ${NOK}
-}
-
-
-#####################################################################
-function isAlreadyOSXInstalled() {
-#####################################################################
-    local appName=$1
-
-    if /System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister -dump 2>&1 | grep -q "${appName}" ; then
-        echo "Skipping: '${appName}' is already installed"
-        return ${OK}
-    fi
-
-    return ${NOK}
-}
-
-
-#####################################################################
-function isAlreadyAvailableOnCLI() {
-#####################################################################
-    local appName=$1
-
-    if which -s "${appName}"; then
-        echo "'${appName}' is already available on the CLI. Skipping this step"
-        return ${OK}
-    fi
-
-    return ${NOK}
-}
-
-
-#####################################################################
-function brew_install() {
-#####################################################################
-    local package=${1:-Missing package argument in function `$FUNCNAME[0]`}
-
-    isHomebrewAvailable || return
-    brew list "${package}" &>/dev/null || brew install "${package}" || exit 1
-    echo Done
-}
-
-
-#####################################################################
-function brew_cask_install() {
-#####################################################################
-    local package=${1:-Missing package argument in function `$FUNCNAME[0]`}
-
-    isHomebrewAvailable || return
-    brew cask list "${package}" &>/dev/null || brew cask install "${package}" || exit 1
-    echo Done
-}
-
-
-#####################################################################
-function install_brew() {
-#####################################################################
-    banner "Installing Homebrew"
-
-    which -s brew && return
-
-    echo "Homebrew is a pre-requisite but I can't locate your installation."
-    local choice
-    read -p "Perform homebrew installation (y/N)? " choice
-    if [[ ! "${choice}" =~ ^[Yy1]$ ]]; then
-        echo "OK, you will need to install the required software (Docker, Vagrant, etc) yourself"
-        return
-    fi
-
-    /usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)" || exit 1
-    brew analytics off
-    brew update || exit 1
-    echo Done
-}
-
-
-#####################################################################
-function install_VirtualBox() {
-#####################################################################
-    banner "Installing VirtualBox"
-
-    isAlreadyOSXInstalled "VirtualBox" && return
-    brew_cask_install virtualbox || exit 1
-    brew_cask_install virtualbox-extension-pack || exit 1
-}
 
 
 #####################################################################
@@ -144,7 +36,7 @@ function vagrant_destroy() {
 #####################################################################
 function install_Kali() {
 #####################################################################
-    pushd "${SCRIPT_HOME}/Kali_Linux" >/dev/null || exit 1
+    pushd "${SECURITY_TT_HOME}/Kali_Linux" >/dev/null || exit 1
 
     banner "Installing Kali Linux"
     vagrant_destroy && echo -e "\n***WARNING - This may take over an hour depending on the speed of your internet connection and your laptop\n"
@@ -290,7 +182,9 @@ function wait_minikiube_registry_addon_is_ready() {
 
     # get the ip of the registry endpoint
     export REGISTRY_CLUSTERIP=$(kubectl --context=${MINIKUBE_PROFILE} -n kube-system get svc registry -o jsonpath="{.spec.clusterIP}") || exit 1
+    minikube --profile ${MINIKUBE_PROFILE} ssh "sudo echo '${REGISTRY_CLUSTERIP} registry' >> /etc/hosts"
     echo "Minikube registry Service ClusterIP: ${REGISTRY_CLUSTERIP}"
+    REGISTRY_CLUSTERIP=registry
 
     echo "(Press {RETURN} to stop waiting)"
     while ! minikube --profile ${MINIKUBE_PROFILE} ssh "curl -sSI ${REGISTRY_CLUSTERIP}/v2/" | grep -q " 200 OK"; do
@@ -302,7 +196,7 @@ function wait_minikiube_registry_addon_is_ready() {
 #####################################################################
 function build_SplunkImage() {
 #####################################################################
-    pushd "${SCRIPT_HOME}/Splunk7" >/dev/null || exit 1
+    pushd "${SECURITY_TT_HOME}/Splunk7" >/dev/null || exit 1
 
     banner "Building Splunk Docker image"
 
@@ -318,7 +212,7 @@ function build_SplunkImage() {
 #####################################################################
 function deploy_Splunk() {
 #####################################################################
-    pushd "${SCRIPT_HOME}/Splunk7" >/dev/null || exit 1
+    pushd "${SECURITY_TT_HOME}/Splunk7" >/dev/null || exit 1
 
     banner "Deploying Splunk to Minikube (profile: ${MINIKUBE_PROFILE})"
 
@@ -411,8 +305,9 @@ function display_minikube_services() {
 #####################################################################
 # Main Programme Entry
 #####################################################################
-install_brew
-install_VirtualBox
+"${SECURITY_TT_HOME}"/scripts/cmds/installers/homebrew.sh
+"${SECURITY_TT_HOME}"/scripts/cmds/installers/virtualbox.sh
+exit 1
 install_Vagrant
 install_Kali
 install_kubernetes_cli
