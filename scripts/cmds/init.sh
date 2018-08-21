@@ -13,81 +13,6 @@ readonly MINIKUBE_VM_DRIVER="${MINIKUBE_VM_DRIVER:-virtualbox}"
 
 
 #####################################################################
-function install_Vagrant() {
-#####################################################################
-    banner "Installing Vagrant"
-
-    isAlreadyAvailableOnCLI "vagrant" && return
-    brew_cask_install vagrant || exit 1
-    brew_install vagrant-completion || exit 1
-}
-
-
-#####################################################################
-function vagrant_destroy() {
-#####################################################################
-    vagrant status | grep -q "not created" && return
-
-    echo "This Vagrant machine has already been set-up previously."
-    vagrant destroy
-}
-
-
-#####################################################################
-function install_Kali() {
-#####################################################################
-    pushd "${SECURITY_TT_HOME}/Kali_Linux" >/dev/null || exit 1
-
-    banner "Installing Kali Linux"
-    vagrant_destroy && echo -e "\n***WARNING - This may take over an hour depending on the speed of your internet connection and your laptop\n"
-    vagrant up
-
-    popd >/dev/null || exit 1
-}
-
-
-#####################################################################
-function install_kubernetes_cli() {
-#####################################################################
-    banner "Installing kubernetes-cli"
-
-    isAlreadyAvailableOnCLI "kubectl" && return
-    brew_install kubernetes-cli || exit 1
-}
-
-
-#####################################################################
-function install_Helm() {
-#####################################################################
-    banner "Installing Helm"
-
-    isAlreadyAvailableOnCLI "helm" && return
-    brew_install kubernetes-helm || exit 1
-}
-
-
-#####################################################################
-function install_Minikube() {
-#####################################################################
-    banner "Installing Minikube"
-
-    isAlreadyAvailableOnCLI "minikube" && return
-    brew_cask_install minikube || exit 1
-}
-
-
-#####################################################################
-function install_Docker() {
-#####################################################################
-    banner "Installing Docker"
-
-    isAlreadyOSXInstalled "Docker" && isAlreadyAvailableOnCLI "docker" && return
-    brew_cask_install docker || exit 1
-    brew_install docker-completion || exit 1
-}
-
-
-#####################################################################
 function start_Docker() {
 #####################################################################
     banner "Starting Docker"
@@ -303,18 +228,33 @@ function display_minikube_services() {
 
 
 #####################################################################
+function installer() {
+#####################################################################
+    local installerName="$1"
+    "${SECURITY_TT_HOME}"/scripts/cmds/installers/${installerName}.sh
+}
+
+
+#####################################################################
+function install_prerequisite_sw() {
+#####################################################################
+    installer homebrew
+    installer virtualbox
+    installer vagrant
+    installer Kali
+    installer kubernetes_cli
+    installer Helm
+    installer Docker
+    start_Docker
+    installer Minikube
+}
+
+
+#####################################################################
 # Main Programme Entry
 #####################################################################
-"${SECURITY_TT_HOME}"/scripts/cmds/installers/homebrew.sh
-"${SECURITY_TT_HOME}"/scripts/cmds/installers/virtualbox.sh
-exit 1
-install_Vagrant
-install_Kali
-install_kubernetes_cli
-install_Helm
-install_Docker
-start_Docker
-install_Minikube
+install_prerequisite_sw
+
 createAndRun_Minikube
 wait_until_k8s_environment_is_ready
 wait_minikiube_registry_addon_is_ready
