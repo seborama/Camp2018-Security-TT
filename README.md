@@ -4,6 +4,12 @@ Pen-testing playground lab.
 
 ![](docs/SecurityTT_Camp_2018_PoC.jpg)
 
+Overall flow:
+ - an attack is performed from Kali to target Wordpress
+ - this activity generates logs inside the K8s cluster (Wordpress, DB, K8s, etc)
+ - the logs are captured by Splunk
+ - Splunk forwards them to Splunk SES (or Phantom, if set-up)
+
 What you get:
 
   - Homebrew, VirtualBox, Docker, Vagrant, Minikube

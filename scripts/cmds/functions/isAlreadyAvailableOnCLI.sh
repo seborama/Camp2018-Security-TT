@@ -6,7 +6,7 @@ typeset -xr _INC_IS_ALREADY_AVAILABLE_ON_CLI
 #####################################################################
 function isAlreadyAvailableOnCLI() {
 #####################################################################
-    local appName=$1
+    local -r appName=$1 ; : ${appName:?<- missing argument in "'${FUNCNAME[0]}()'"}
 
     if which -s "${appName}"; then
         echo "'${appName}' is already available on the CLI. Skipping this step"

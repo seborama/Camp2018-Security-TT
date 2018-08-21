@@ -69,6 +69,28 @@ function createAndRun_Minikube() {
 
 
 #####################################################################
+function wait_until_k8s_environment_is_ready() {
+#####################################################################
+    local -r minikubeProfile=$1 ; : ${minikubeProfile:?<- missing argument in "'${FUNCNAME[0]}()'"}
+
+    local -r reportFile=/tmp/setup_local.$$
+    local -r jsonPath='{range .items[*]}±{@.metadata.name}:{range @.status.containerStatuses[*]}ready={@.ready};{end}{end}'
+
+    banner "Waiting for K8s environment readiness"
+
+    echo "(Press {RETURN} stop waiting)"
+    while true;
+    do
+        kubectl --context=${minikubeProfile} get pods --all-namespaces -o jsonpath="${jsonPath}" | tr "±" "\n" | grep false >"${reportFile}"
+        [ "$(wc -l ${reportFile} | awk '{print $1}')" == 0 ] && break
+        read -t 2 && break
+    done
+
+    rm "${reportFile}"
+}
+
+
+#####################################################################
 function create_K8s_Namespace() {
 #####################################################################
     banner "Creating and Kubernetes namespace (${K8S_NAMESPACE})"
@@ -79,35 +101,16 @@ function create_K8s_Namespace() {
 
 
 #####################################################################
-function wait_until_k8s_environment_is_ready() {
-#####################################################################
-    local reportFile=/tmp/setup_local.$$
-    local jsonPath='{range .items[*]}±{@.metadata.name}:{range @.status.containerStatuses[*]}ready={@.ready};{end}{end}'
-
-    banner "Waiting for K8s environment readiness"
-
-    echo "(Press {RETURN} stop waiting)"
-    while true;
-    do
-        kubectl --context=${MINIKUBE_PROFILE} get pods --all-namespaces -o jsonpath="${jsonPath}" | tr "±" "\n" | grep false >"${reportFile}"
-        [ "$(wc -l ${reportFile} | awk '{print $1}')" == 0 ] && break
-        read -t 2 && break
-    done
-
-    rm "${reportFile}"
-}
-
-
-#####################################################################
-function wait_minikiube_registry_addon_is_ready() {
+function wait_minikube_registry_addon_is_ready() {
 #####################################################################
     banner "Waiting for Minikube registry addon readiness"
 
     while ! kubectl --context=${MINIKUBE_PROFILE} -n kube-system get svc registry &>/dev/null; do sleep 2 ; done
 
     # get the ip of the registry endpoint
+    # TODO this code exists in two places (see also start.sh
     export REGISTRY_CLUSTERIP=$(kubectl --context=${MINIKUBE_PROFILE} -n kube-system get svc registry -o jsonpath="{.spec.clusterIP}") || exit 1
-    minikube --profile ${MINIKUBE_PROFILE} ssh "sudo echo '${REGISTRY_CLUSTERIP} registry' >> /etc/hosts"
+    minikube --profile ${MINIKUBE_PROFILE} ssh "sudo echo '${REGISTRY_CLUSTERIP}    registry' >> /etc/hosts"
     echo "Minikube registry Service ClusterIP: ${REGISTRY_CLUSTERIP}"
     REGISTRY_CLUSTERIP=registry
 
@@ -256,8 +259,9 @@ function install_prerequisite_sw() {
 install_prerequisite_sw
 
 createAndRun_Minikube
-wait_until_k8s_environment_is_ready
-wait_minikiube_registry_addon_is_ready
+wait_until_k8s_environment_is_ready ${MINIKUBE_PROFILE}
+wait_minikube_registry_addon_is_ready
+
 create_K8s_Namespace
 build_SplunkImage
 deploy_Splunk

@@ -6,7 +6,7 @@ typeset -xr _INC_BANNER
 #####################################################################
 function banner() {
 #####################################################################
-    local message=${1:-Missing message argument in function `$FUNCNAME[0]`}
+    local -r message=$1 ; : ${message:?<- missing argument in "'${FUNCNAME[0]}()'"}
 
     echo -e "\n\n*********************************************************************"
     echo -e "*** ${message}"

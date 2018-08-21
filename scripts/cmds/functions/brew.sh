@@ -16,7 +16,7 @@ export -f isHomebrewAvailable
 #####################################################################
 function brew_install() {
 #####################################################################
-    local package=${1:-Missing package argument in function `$FUNCNAME[0]`}
+    local -r package=$1 ; : ${package:?<- missing argument in "'${FUNCNAME[0]}()'"}
 
     isHomebrewAvailable || return
     brew list "${package}" &>/dev/null || brew install "${package}" || exit 1
@@ -28,7 +28,7 @@ export -f brew_install
 #####################################################################
 function brew_cask_install() {
 #####################################################################
-    local package=${1:-Missing package argument in function `$FUNCNAME[0]`}
+    local -r package=$1 ; : ${package:?<- missing argument in "'${FUNCNAME[0]}()'"}
 
     isHomebrewAvailable || return
     brew cask list "${package}" &>/dev/null || brew cask install "${package}" || exit 1
