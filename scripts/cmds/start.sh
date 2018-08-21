@@ -1,23 +1,54 @@
 #!/usr/bin/env bash
+# A desirable attribute of a sub-script is that it does not use global env variables that
+# were created by its parents (bash and system env vars are ok). Use function arguments instead to
+# pass such variables
+# There should be scarce exceptions to this rule (such as a var that contains the script main install dir)
 
-function updateHostsFiles() {
-    # TODO this code exists in two places (see also init.sh
-    local -r minikubeIP=$(kubectl --context=${MINIKUBE_PROFILE} -n kube-system get svc registry -o jsonpath="{.spec.clusterIP}") || exit 1
-    : ${minikubeIP:?Unable to determnine the registry IP}
 
-    minikube --profile=${MINIKUBE_PROFILE} ssh "sudo -c echo '${minikubeIP}    registry' >>/etc/hosts"
+[ -z "${SECURITY_TT_HOME}" ] && echo "ERROR - Invalid state - Make sure you use lab.sh" && exit 1
+
+
+#####################################################################
+function wait_for_k8s_environment() {
+#####################################################################
+    local -r minikubeProfile=$1 ; : ${minikubeProfile:?<- missing argument in "'${FUNCNAME[0]}()'"}
+
+    banner "Waiting for K8s environment readiness"
+    wait_until_k8s_environment_is_ready ${minikubeProfile}
+}
+
+
+#####################################################################
+function wait_for_minikube_registry_addon() {
+#####################################################################
+    local -r minikubeProfile=$1 ; : ${minikubeProfile:?<- missing argument in "'${FUNCNAME[0]}()'"}
+    local -r registryHost=$2 ; : ${registryHost:?<- missing argument in "'${FUNCNAME[0]}()'"}
+
+    banner "Waiting for Minikube registry addon readiness"
+    wait_minikube_registry_addon_is_ready ${minikubeProfile} ${registryHost}
+}
+
+
+function start_minikube() {
+    local -r minikubeProfile=$1 ; : ${minikubeProfile:?<- missing argument in "'${FUNCNAME[0]}()'"}
+
+    if [ -d ~/.minikube/machines/${minikubeProfile}/config.json ]; then
+        minikube start
+    else
+        echo "It doesn't appear that you have not initialised the environment yet"
+        echo "Please run: lab.sh init"
+    fi
 }
 
 #####################################################################
-# Main Programme Entry
+function start() {
 #####################################################################
-if [ ! -d ~/.minikube/machines/${MINIKUBE_PROFILE}/config.json ]; then
-    echo "It doesn't appear that you have initialised the environment yet"
-    read -p "Would you like to do so now? (y/N) " choice
-    [[ ! "${choice}" =~ ^Yy1$ ]] && exit 1
-    "${SECURITY_TT_HOME}"/scripts/lab.sh init
-    exit
-fi
+    local -r minikubeProfile=$1 ; : ${minikubeProfile:?<- missing argument in "'${FUNCNAME[0]}()'"}
+    local -r registryHost=$2 ; : ${registryHost:?<- missing argument in "'${FUNCNAME[0]}()'"}
 
-minikube start
-updateHostsFiles
+    start_miniube ${minikubeProfile}
+    wait_for_k8s_environment ${minikubeProfile}
+    wait_for_minikube_registry_addon ${minikubeProfile} ${registryHost}
+}
+
+start "$@"

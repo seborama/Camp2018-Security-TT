@@ -1,6 +1,13 @@
 #!/usr/bin/env bash
 
+
+source "$(dirname "$0")/cmds/_environment.sh" || exit 1
+source "$(dirname "$0")/cmds/functions/_functions.sh" || exit 1
+
+
+#####################################################################
 function usage() {
+#####################################################################
     cat <<EOF
 ./sec init
 ./sec start
@@ -15,19 +22,13 @@ EOF
 }
 
 
-typeset -xr SECURITY_TT_HOME="$(pushd $(dirname $0)/.. >/dev/null ; echo ${PWD})"
-typeset -xr readonly OK=0
-typeset -xr readonly NOK=1
-
-
-source "${SECURITY_TT_HOME}"/scripts/cmds/functions/_functions.sh
-
-
 #####################################################################
 # Main Programme Entry
 #####################################################################
 COMMAND="$1"
 case "${COMMAND}" in
-    init|start|stop) "${SECURITY_TT_HOME}"/scripts/cmds/${COMMAND}.sh ;;
+    init) "${SECURITY_TT_HOME}"/scripts/cmds/init.sh ;;
+    start) "${SECURITY_TT_HOME}"/scripts/cmds/start.sh ${MINIKUBE_PROFILE} ${REGISTRY_HOST} ${K8S_NAMESPACE};;
+    stop) "${SECURITY_TT_HOME}"/scripts/cmds/stop.sh ;;
     *) usage ;;
 esac

@@ -1,15 +1,10 @@
 #!/usr/bin/env bash
+# A desirable attribute of a sub-script is that it does not use global env variables that
+# were created by its parents (bash and system env vars are ok). Use function arguments instead to
+# pass such variables
+# There should be scarce exceptions to this rule (such as a var that contains the script main install dir)
 
-#####################################################################
-# Global Environment Variables
-#####################################################################
-readonly K8S_NAMESPACE="security-tt"
-#readonly MINIKUBE_PROFILE="${MINIKUBE_PROFILE:-minikubesecuritytt}"
-readonly MINIKUBE_PROFILE="minikube"
-[ "${MINIKUBE_PROFILE}" != "minikube" ] &&
-    read -p "Note: using a profile name other than minikube may cause stability issues with some versions of minikube"
-
-readonly MINIKUBE_VM_DRIVER="${MINIKUBE_VM_DRIVER:-virtualbox}"
+[ -z "${SECURITY_TT_HOME}" ] && echo "ERROR - Invalid state - Make sure you use lab.sh" && exit 1
 
 
 #####################################################################
@@ -69,55 +64,28 @@ function createAndRun_Minikube() {
 
 
 #####################################################################
-function wait_until_k8s_environment_is_ready() {
+function wait_for_k8s_environment() {
 #####################################################################
-    local -r minikubeProfile=$1 ; : ${minikubeProfile:?<- missing argument in "'${FUNCNAME[0]}()'"}
-
-    local -r reportFile=/tmp/setup_local.$$
-    local -r jsonPath='{range .items[*]}±{@.metadata.name}:{range @.status.containerStatuses[*]}ready={@.ready};{end}{end}'
-
     banner "Waiting for K8s environment readiness"
-
-    echo "(Press {RETURN} stop waiting)"
-    while true;
-    do
-        kubectl --context=${minikubeProfile} get pods --all-namespaces -o jsonpath="${jsonPath}" | tr "±" "\n" | grep false >"${reportFile}"
-        [ "$(wc -l ${reportFile} | awk '{print $1}')" == 0 ] && break
-        read -t 2 && break
-    done
-
-    rm "${reportFile}"
+    wait_until_k8s_environment_is_ready ${MINIKUBE_PROFILE}
 }
 
 
 #####################################################################
-function create_K8s_Namespace() {
+function wait_for_minikube_registry_addon() {
+#####################################################################
+    banner "Waiting for Minikube registry addon readiness"
+    wait_minikube_registry_addon_is_ready ${MINIKUBE_PROFILE} ${REGISTRY_HOST}
+}
+
+
+#####################################################################
+function create_Security_K8s_Namespace() {
 #####################################################################
     banner "Creating and Kubernetes namespace (${K8S_NAMESPACE})"
 
     kubectl --context=${MINIKUBE_PROFILE} get namespace ${K8S_NAMESPACE} 2>/dev/null && return
     kubectl --context=${MINIKUBE_PROFILE} create namespace ${K8S_NAMESPACE} || exit 1
-}
-
-
-#####################################################################
-function wait_minikube_registry_addon_is_ready() {
-#####################################################################
-    banner "Waiting for Minikube registry addon readiness"
-
-    while ! kubectl --context=${MINIKUBE_PROFILE} -n kube-system get svc registry &>/dev/null; do sleep 2 ; done
-
-    # get the ip of the registry endpoint
-    # TODO this code exists in two places (see also start.sh
-    export REGISTRY_CLUSTERIP=$(kubectl --context=${MINIKUBE_PROFILE} -n kube-system get svc registry -o jsonpath="{.spec.clusterIP}") || exit 1
-    minikube --profile ${MINIKUBE_PROFILE} ssh "sudo echo '${REGISTRY_CLUSTERIP}    registry' >> /etc/hosts"
-    echo "Minikube registry Service ClusterIP: ${REGISTRY_CLUSTERIP}"
-    REGISTRY_CLUSTERIP=registry
-
-    echo "(Press {RETURN} to stop waiting)"
-    while ! minikube --profile ${MINIKUBE_PROFILE} ssh "curl -sSI ${REGISTRY_CLUSTERIP}/v2/" | grep -q " 200 OK"; do
-        read -t 2 && break
-    done
 }
 
 
@@ -129,8 +97,8 @@ function build_SplunkImage() {
     banner "Building Splunk Docker image"
 
     eval $(minikube --profile ${MINIKUBE_PROFILE} docker-env) || exit 1
-    docker --log-level warn build -t ${REGISTRY_CLUSTERIP}/splunk_7:v1 . || exit 1
-    docker --log-level warn push ${REGISTRY_CLUSTERIP}/splunk_7:v1 || exit 1
+    docker --log-level warn build -t ${REGISTRY_HOST}/splunk_7:v1 . || exit 1
+    docker --log-level warn push ${REGISTRY_HOST}/splunk_7:v1 || exit 1
     eval $(minikube --profile ${MINIKUBE_PROFILE} docker-env --unset) || exit 1
 
     popd >/dev/null || exit 1
@@ -172,7 +140,7 @@ function deploy_Splunk() {
     fi
 
     [ -f splunk-daemonset.generated.yaml ] && rm splunk-daemonset.generated.yaml
-    sed -e "s/{{REGISTRY_IP}}/${REGISTRY_CLUSTERIP}/g" \
+    sed -e "s/{{REGISTRY_IP}}/${REGISTRY_HOST}/g" \
         -e "s/{{SPLUNK_PASSWORD}}/${splunkPassword}/g" \
         splunk-daemonset.templ.yaml >splunk-daemonset.generated.yaml || exit 1
     kubectl --context=${MINIKUBE_PROFILE} apply -f splunk-daemonset.generated.yaml || exit 1
@@ -186,6 +154,9 @@ function deploy_Splunk() {
 #####################################################################
 function deploy_Wordpress {
 #####################################################################
+    local -r minikubeProfile=$1 ; : ${minikubeProfile:?<- missing argument in "'${FUNCNAME[0]}()'"}
+    local -r k8sNamespace=$2 ; : ${k8sNamespace:?<- missing argument in "'${FUNCNAME[0]}()'"}
+
     local wordpressPassword
     local mariadbRootPassword
     local mariadbPassword
@@ -194,9 +165,9 @@ function deploy_Wordpress {
     read -s -p "Enter value for 'mariadbRootPassword': " mariadbRootPassword; echo
     read -s -p "Enter value for 'mariadbPassword': " mariadbPassword; echo
 
-    helm --kube-context=${MINIKUBE_PROFILE} install \
+    helm --kube-context=${minikubeProfile} install \
          --name=wordpress \
-         --namespace=${K8S_NAMESPACE} \
+         --namespace=${k8sNamespace} \
          -f WordPress/values-stable-wordpress-topicteam.yaml \
          stable/wordpress \
          --set-string wordpressPassword="${wordpressPassword}" \
@@ -207,15 +178,18 @@ function deploy_Wordpress {
 #####################################################################
 function deploy_PackagesToMinikube() {
 #####################################################################
-    banner "Deploying packages to Minikube (profile: ${MINIKUBE_PROFILE})"
+    local -r minikubeProfile=$1 ; : ${minikubeProfile:?<- missing argument in "'${FUNCNAME[0]}()'"}
+    local -r k8sNamespace=$2 ; : ${k8sNamespace:?<- missing argument in "'${FUNCNAME[0]}()'"}
 
-    helm --kube-context=${MINIKUBE_PROFILE} init || exit 1
-    kubectl --context=${MINIKUBE_PROFILE} -n kube-system rollout status deployment.apps/tiller-deploy -w
+    banner "Deploying packages to Minikube (profile: ${minikubeProfile})"
+
+    helm --kube-context=${minikubeProfile} init || exit 1
+    kubectl --context=${minikubeProfile} -n kube-system rollout status deployment.apps/tiller-deploy -w
 
     if [ $(helm status wordpress 2>/dev/null| grep Running | wc -l) -eq 2 ]; then
         echo "Wordpress is already running"
     else
-        deploy_Wordpress
+        deploy_Wordpress ${minikubeProfile} ${k8sNamespace}
     fi
 }
 
@@ -223,10 +197,13 @@ function deploy_PackagesToMinikube() {
 #####################################################################
 function display_minikube_services() {
 #####################################################################
+    local -r minikubeProfile=$1 ; : ${minikubeProfile:?<- missing argument in "'${FUNCNAME[0]}()'"}
+    local -r registryHost=$2 ; : ${registryHost:?<- missing argument in "'${FUNCNAME[0]}()'"}
+
     echo -e "\n"
-    echo -e "\nMinikube IP: $(minikube --profile=${MINIKUBE_PROFILE} ip)"
-    minikube --profile ${MINIKUBE_PROFILE} service list
-    echo -e "\nMinikube registry Service ClusterIP: ${REGISTRY_CLUSTERIP}"
+    echo -e "\nMinikube IP: $(minikube --profile=${minikubeProfile} ip)"
+    minikube --profile ${minikubeProfile} service list
+    echo -e "\nMinikube registry Service ClusterIP: ${registryHost}"
 }
 
 
@@ -254,17 +231,25 @@ function install_prerequisite_sw() {
 
 
 #####################################################################
-# Main Programme Entry
+function init() {
 #####################################################################
-install_prerequisite_sw
+    local -r minikubeProfile=$1 ; : ${minikubeProfile:?<- missing argument in "'${FUNCNAME[0]}()'"}
+    local -r registryHost=$2 ; : ${registryHost:?<- missing argument in "'${FUNCNAME[0]}()'"}
+    local -r k8sNamespace=$2 ; : ${k8sNamespace:?<- missing argument in "'${FUNCNAME[0]}()'"}
 
-createAndRun_Minikube
-wait_until_k8s_environment_is_ready ${MINIKUBE_PROFILE}
-wait_minikube_registry_addon_is_ready
+    install_prerequisite_sw
 
-create_K8s_Namespace
-build_SplunkImage
-deploy_Splunk
-deploy_PackagesToMinikube
+    createAndRun_Minikube
+    wait_for_k8s_environment ${minikubeProfile}
+    wait_for_minikube_registry_addon
 
-display_minikube_services
+    create_Security_K8s_Namespace
+    build_SplunkImage
+    deploy_Splunk
+    deploy_PackagesToMinikube ${minikubeProfile} ${k8sNamespace}
+
+    display_minikube_services ${minikubeProfile} ${registryHost}
+}
+
+echo "DEBUG - refactoring in progress: remove all remaining use of global env variables (other than perhaps SECURITY_TT_HOME)" ; exit 255
+init "$@"
