@@ -1,7 +1,9 @@
 #!/usr/bin/env bash
 
 
+# shellcheck source=cmds/_environment.sh
 source "$(dirname "$0")/cmds/_environment.sh" || exit 1
+# shellcheck source=functions/_functions.sh
 source "$(dirname "$0")/cmds/functions/_functions.sh" || exit 1
 
 
@@ -27,8 +29,8 @@ EOF
 #####################################################################
 COMMAND="$1"
 case "${COMMAND}" in
-    init) "${SECURITY_TT_HOME}"/scripts/cmds/init.sh ;;
-    start) "${SECURITY_TT_HOME}"/scripts/cmds/start.sh ${MINIKUBE_PROFILE} ${REGISTRY_HOST} ${K8S_NAMESPACE};;
+    init) "${SECURITY_TT_HOME}"/scripts/cmds/init.sh ${MINIKUBE_PROFILE} ${REGISTRY_HOST} ${K8S_NAMESPACE} ${MINIKUBE_VM_DRIVER} ;;
+    start) "${SECURITY_TT_HOME}"/scripts/cmds/start.sh ${MINIKUBE_PROFILE} ${REGISTRY_HOST} ;;
     stop) "${SECURITY_TT_HOME}"/scripts/cmds/stop.sh ;;
     *) usage ;;
 esac

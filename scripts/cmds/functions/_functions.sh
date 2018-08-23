@@ -13,5 +13,6 @@ thisFile="${BASH_SOURCE[0]}"
 for functionFile in "${SECURITY_TT_HOME}"/scripts/cmds/functions/*.sh
 do
     [ "${functionFile}" == "${thisFile}" ] && continue
+    # shellcheck source=functions/*.sh
     source "${functionFile}"
 done

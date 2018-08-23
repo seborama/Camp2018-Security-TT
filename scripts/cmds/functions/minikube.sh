@@ -39,7 +39,7 @@ function wait_minikube_registry_addon_is_ready() {
     done
 
     # now that the registry service is up, it has an IP
-    configure_minikube_hosts_file
+    configure_minikube_hosts_file ${minikubeProfile} ${registryHost}
 
     while ! minikube --profile ${minikubeProfile} ssh "curl -sSI ${registryHost}/v2/" | grep -q " 200 OK"; do
         sleep 2
@@ -47,3 +47,18 @@ function wait_minikube_registry_addon_is_ready() {
 }
 
 export -f wait_minikube_registry_addon_is_ready
+
+
+#####################################################################
+function display_minikube_services() {
+#####################################################################
+    local -r minikubeProfile=$1 ; : ${minikubeProfile:?<- missing argument in "'${FUNCNAME[0]}()'"}
+    local -r registryHost=$2 ; : ${registryHost:?<- missing argument in "'${FUNCNAME[0]}()'"}
+
+    echo -e "\n"
+    echo -e "\nMinikube IP: $(minikube --profile=${minikubeProfile} ip)"
+    minikube --profile ${minikubeProfile} service list
+    echo -e "\nMinikube registry Service ClusterIP: ${registryHost}"
+}
+
+export -f display_minikube_services

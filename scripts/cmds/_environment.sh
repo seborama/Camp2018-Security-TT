@@ -9,7 +9,11 @@
 #####################################################################
 # Global Environment Variables
 #####################################################################
-typeset -xr SECURITY_TT_HOME="$(pushd $(dirname $0)/../.. >/dev/null ; echo ${PWD})"
+typeset -xr SECURITY_TT_HOME="$(pushd "$(dirname $0)"/.. >/dev/null || exit 1; echo ${PWD})"
+if [ -z "${SECURITY_TT_HOME}" ]; then
+    echo "Could not determine SECURITY_TT_HOME"
+    exit 100
+fi
 
 typeset -xr K8S_NAMESPACE="security-tt"
 

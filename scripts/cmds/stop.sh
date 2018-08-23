@@ -14,4 +14,4 @@ function stop() {
     minikube stop
 }
 
-stop "$@"
+stop

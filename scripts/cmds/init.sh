@@ -23,9 +23,12 @@ function start_Docker() {
 #####################################################################
 function createAndRun_Minikube() {
 #####################################################################
-    local installDir=~/.minikube/machines/${MINIKUBE_PROFILE}/
+    local -r minikubeProfile=$1 ; : ${minikubeProfile:?<- missing argument in "'${FUNCNAME[0]}()'"}
+    local -r minikubeVmDriver=$2 ; : ${minikubeVmDriver:?<- missing argument in "'${FUNCNAME[0]}()'"}
 
-    banner "Creating and running Minikube (profile: ${MINIKUBE_PROFILE})"
+    local -r installDir=~/.minikube/machines/${minikubeProfile}/
+
+    banner "Creating and running Minikube (profile: ${minikubeProfile})"
 
     local keepExisting=0
 
@@ -40,66 +43,77 @@ function createAndRun_Minikube() {
         fi
 
         if [ "${keepExisting}" -ne 1 ]; then
-            minikube --profile=${MINIKUBE_PROFILE} stop
-            minikube --profile=${MINIKUBE_PROFILE} delete
+            minikube --profile=${minikubeProfile} stop
+            minikube --profile=${minikubeProfile} delete
             rm -rf "${installDir}"
         fi
     fi
 
     if [ "${keepExisting}" -ne 1 ]; then
-        minikube --profile=${MINIKUBE_PROFILE} \
+        minikube --profile=${minikubeProfile} \
                  start \
-                 --vm-driver=${MINIKUBE_VM_DRIVER} \
+                 --vm-driver=${minikubeVmDriver} \
                  --memory=8192 \
                  --cpus=4  || exit 1
 
-        minikube --profile ${MINIKUBE_PROFILE} addons enable registry || exit 1
-        minikube --profile ${MINIKUBE_PROFILE} addons enable metrics-server || exit 1 # this allows "kubectl top pod" and "kubectl top node"
+        minikube --profile ${minikubeProfile} addons enable registry || exit 1
+        minikube --profile ${minikubeProfile} addons enable metrics-server || exit 1 # this allows "kubectl top pod" and "kubectl top node"
     fi
 
-    eval $(minikube --profile ${MINIKUBE_PROFILE} docker-env --unset) || exit 1
+    eval "$(minikube --profile ${minikubeProfile} docker-env --unset)" || exit 1
 
-    echo -e "\nMinikube IP: $(minikube --profile=${MINIKUBE_PROFILE} ip)"
+    echo -e "\nMinikube IP: $(minikube --profile=${minikubeProfile} ip)"
 }
 
 
 #####################################################################
 function wait_for_k8s_environment() {
 #####################################################################
+    local -r minikubeProfile=$1 ; : ${minikubeProfile:?<- missing argument in "'${FUNCNAME[0]}()'"}
+
     banner "Waiting for K8s environment readiness"
-    wait_until_k8s_environment_is_ready ${MINIKUBE_PROFILE}
+    wait_until_k8s_environment_is_ready ${minikubeProfile}
 }
 
 
 #####################################################################
 function wait_for_minikube_registry_addon() {
 #####################################################################
+    local -r minikubeProfile=$1 ; : ${minikubeProfile:?<- missing argument in "'${FUNCNAME[0]}()'"}
+    local -r registryHost=$2 ; : ${registryHost:?<- missing argument in "'${FUNCNAME[0]}()'"}
+
     banner "Waiting for Minikube registry addon readiness"
-    wait_minikube_registry_addon_is_ready ${MINIKUBE_PROFILE} ${REGISTRY_HOST}
+    wait_minikube_registry_addon_is_ready ${minikubeProfile} ${registryHost}
 }
 
 
 #####################################################################
 function create_Security_K8s_Namespace() {
 #####################################################################
-    banner "Creating and Kubernetes namespace (${K8S_NAMESPACE})"
+    local -r minikubeProfile=$1 ; : ${minikubeProfile:?<- missing argument in "'${FUNCNAME[0]}()'"}
+    local -r k8sNamespace=$2 ; : ${k8sNamespace:?<- missing argument in "'${FUNCNAME[0]}()'"}
 
-    kubectl --context=${MINIKUBE_PROFILE} get namespace ${K8S_NAMESPACE} 2>/dev/null && return
-    kubectl --context=${MINIKUBE_PROFILE} create namespace ${K8S_NAMESPACE} || exit 1
+    banner "Creating and Kubernetes namespace (${k8sNamespace})"
+
+    kubectl --context=${minikubeProfile} get namespace ${k8sNamespace} 2>/dev/null && return
+    kubectl --context=${minikubeProfile} create namespace ${k8sNamespace} || exit 1
 }
 
 
 #####################################################################
 function build_SplunkImage() {
 #####################################################################
+    local -r minikubeProfile=$1 ; : ${minikubeProfile:?<- missing argument in "'${FUNCNAME[0]}()'"}
+    local -r registryHost=$2 ; : ${registryHost:?<- missing argument in "'${FUNCNAME[0]}()'"}
+
     pushd "${SECURITY_TT_HOME}/Splunk7" >/dev/null || exit 1
 
     banner "Building Splunk Docker image"
 
-    eval $(minikube --profile ${MINIKUBE_PROFILE} docker-env) || exit 1
-    docker --log-level warn build -t ${REGISTRY_HOST}/splunk_7:v1 . || exit 1
-    docker --log-level warn push ${REGISTRY_HOST}/splunk_7:v1 || exit 1
-    eval $(minikube --profile ${MINIKUBE_PROFILE} docker-env --unset) || exit 1
+    eval "$(minikube --profile ${minikubeProfile} docker-env)" || exit 1
+    docker --log-level warn build -t ${registryHost}/splunk_7:v1 . || exit 1
+    docker --log-level warn push ${registryHost}/splunk_7:v1 || exit 1
+    eval "$(minikube --profile ${minikubeProfile} docker-env --unset)" || exit 1
 
     popd >/dev/null || exit 1
 }
@@ -108,16 +122,19 @@ function build_SplunkImage() {
 #####################################################################
 function deploy_Splunk() {
 #####################################################################
+    local -r minikubeProfile=$1 ; : ${minikubeProfile:?<- missing argument in "'${FUNCNAME[0]}()'"}
+    local -r registryHost=$2 ; : ${registryHost:?<- missing argument in "'${FUNCNAME[0]}()'"}
+
     pushd "${SECURITY_TT_HOME}/Splunk7" >/dev/null || exit 1
 
-    banner "Deploying Splunk to Minikube (profile: ${MINIKUBE_PROFILE})"
+    banner "Deploying Splunk to Minikube (profile: ${minikubeProfile})"
 
     local splunkPassword=" "
     while echo "${splunkPassword}"| grep -qF " " || [ ${#splunkPassword} -lt 8 ]; do
         read -s -p "Enter value for 'splunkPassword' (minimum 8 characters, space characters NOT permitted): " splunkPassword; echo
     done
 
-    kubectl --context=${MINIKUBE_PROFILE} apply -f splunk-config.yaml || exit 1
+    kubectl --context=${minikubeProfile} apply -f splunk-config.yaml || exit 1
 
     local splunkEntSecCredentialsSPL="H.!"
     while [ ! -f "${splunkEntSecCredentialsSPL}" ] && [  "${splunkEntSecCredentialsSPL}" != "none" ]; do
@@ -128,24 +145,26 @@ function deploy_Splunk() {
     done
 
     if [  "${splunkEntSecCredentialsSPL}" != "none" ]; then
-        local splunkclouduf_spl=$(base64 -i "${splunkEntSecCredentialsSPL}") || exit 1
-        local splunkescreds_txt=$(echo "admin:${splunkPassword}"| base64 ) || exit 1
+        local splunkclouduf_spl
+        splunkclouduf_spl=$(base64 -i "${splunkEntSecCredentialsSPL}") || exit 1
+        local splunkescreds_txt
+        splunkescreds_txt=$(echo "admin:${splunkPassword}"| base64 ) || exit 1
 
         [ -f splunk-secret.generated.yaml ] && rm splunk-secret.generated.yaml
 
         sed -e "s|{{SPLUNKCLOUDUF_SPL_CONTENTS_BASE64}}|${splunkclouduf_spl}|g" \
             -e "s|{{SPLUNKESCREDS_BASE64}}|${splunkescreds_txt}|g" \
             splunk-secret.templ.yaml >splunk-secret.generated.yaml || exit 1
-        kubectl --context=${MINIKUBE_PROFILE} apply -f splunk-secret.generated.yaml || exit 1
+        kubectl --context=${minikubeProfile} apply -f splunk-secret.generated.yaml || exit 1
     fi
 
     [ -f splunk-daemonset.generated.yaml ] && rm splunk-daemonset.generated.yaml
-    sed -e "s/{{REGISTRY_IP}}/${REGISTRY_HOST}/g" \
+    sed -e "s/{{REGISTRY_IP}}/${registryHost}/g" \
         -e "s/{{SPLUNK_PASSWORD}}/${splunkPassword}/g" \
         splunk-daemonset.templ.yaml >splunk-daemonset.generated.yaml || exit 1
-    kubectl --context=${MINIKUBE_PROFILE} apply -f splunk-daemonset.generated.yaml || exit 1
+    kubectl --context=${minikubeProfile} apply -f splunk-daemonset.generated.yaml || exit 1
 
-    kubectl --context=${MINIKUBE_PROFILE} apply -f splunk-service.yaml || exit 1
+    kubectl --context=${minikubeProfile} apply -f splunk-service.yaml || exit 1
 
     popd >/dev/null || exit 1
 }
@@ -186,7 +205,7 @@ function deploy_PackagesToMinikube() {
     helm --kube-context=${minikubeProfile} init || exit 1
     kubectl --context=${minikubeProfile} -n kube-system rollout status deployment.apps/tiller-deploy -w
 
-    if [ $(helm status wordpress 2>/dev/null| grep Running | wc -l) -eq 2 ]; then
+    if (( $(helm status wordpress 2>/dev/null| grep Running | wc -l) == 2 )); then
         echo "Wordpress is already running"
     else
         deploy_Wordpress ${minikubeProfile} ${k8sNamespace}
@@ -195,23 +214,10 @@ function deploy_PackagesToMinikube() {
 
 
 #####################################################################
-function display_minikube_services() {
-#####################################################################
-    local -r minikubeProfile=$1 ; : ${minikubeProfile:?<- missing argument in "'${FUNCNAME[0]}()'"}
-    local -r registryHost=$2 ; : ${registryHost:?<- missing argument in "'${FUNCNAME[0]}()'"}
-
-    echo -e "\n"
-    echo -e "\nMinikube IP: $(minikube --profile=${minikubeProfile} ip)"
-    minikube --profile ${minikubeProfile} service list
-    echo -e "\nMinikube registry Service ClusterIP: ${registryHost}"
-}
-
-
-#####################################################################
 function installer() {
 #####################################################################
     local installerName="$1"
-    "${SECURITY_TT_HOME}"/scripts/cmds/installers/${installerName}.sh
+    "${SECURITY_TT_HOME}"/scripts/cmds/installers/${installerName}.sh || exit 1
 }
 
 
@@ -221,12 +227,11 @@ function install_prerequisite_sw() {
     installer homebrew
     installer virtualbox
     installer vagrant
-    installer Kali
+    installer kali
     installer kubernetes_cli
-    installer Helm
-    installer Docker
+    installer helm
+    installer docker
     start_Docker
-    installer Minikube
 }
 
 
@@ -235,21 +240,22 @@ function init() {
 #####################################################################
     local -r minikubeProfile=$1 ; : ${minikubeProfile:?<- missing argument in "'${FUNCNAME[0]}()'"}
     local -r registryHost=$2 ; : ${registryHost:?<- missing argument in "'${FUNCNAME[0]}()'"}
-    local -r k8sNamespace=$2 ; : ${k8sNamespace:?<- missing argument in "'${FUNCNAME[0]}()'"}
+    local -r k8sNamespace=$3 ; : ${k8sNamespace:?<- missing argument in "'${FUNCNAME[0]}()'"}
+    local -r minikubeVmDriver=$4 ; : ${minikubeVmDriver:?<- missing argument in "'${FUNCNAME[0]}()'"}
 
     install_prerequisite_sw
 
-    createAndRun_Minikube
+    createAndRun_Minikube ${minikubeProfile} ${minikubeVmDriver}
     wait_for_k8s_environment ${minikubeProfile}
-    wait_for_minikube_registry_addon
+    wait_for_minikube_registry_addon ${minikubeProfile} ${registryHost}
 
-    create_Security_K8s_Namespace
-    build_SplunkImage
-    deploy_Splunk
+    create_Security_K8s_Namespace ${minikubeProfile} ${k8sNamespace}
+    build_SplunkImage ${minikubeProfile} ${registryHost}
+    deploy_Splunk ${minikubeProfile} ${registryHost}
     deploy_PackagesToMinikube ${minikubeProfile} ${k8sNamespace}
 
     display_minikube_services ${minikubeProfile} ${registryHost}
 }
 
-echo "DEBUG - refactoring in progress: remove all remaining use of global env variables (other than perhaps SECURITY_TT_HOME)" ; exit 255
+echo "DEBUG - refactoring in progress: remove all remaining use of global env variables (other than perhaps SECURITY_TT_HOME)"
 init "$@"
