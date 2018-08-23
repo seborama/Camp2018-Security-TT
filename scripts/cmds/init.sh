@@ -217,7 +217,8 @@ function deploy_PackagesToMinikube() {
 #####################################################################
 function installer() {
 #####################################################################
-    local installerName="$1"
+    local -r installerName=$1 ; : ${installerName:?<- missing argument in "'${FUNCNAME[0]}()'"}
+
     "${SECURITY_TT_HOME}"/scripts/cmds/installers/${installerName}.sh || exit 1
 }
 
