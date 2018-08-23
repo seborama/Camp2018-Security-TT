@@ -111,12 +111,10 @@ function build_SplunkImage() {
 
     banner "Building Splunk Docker image"
 
-    set -vx
     eval "$(minikube --profile ${minikubeProfile} docker-env)" || exit 1
     docker --log-level warn build -t ${registryHost}/splunk_7:v1 . || exit 1
     docker --log-level warn push ${registryHost}/splunk_7:v1 || exit 1
     eval "$(minikube --profile ${minikubeProfile} docker-env --unset)" || exit 1
-    set +vx
 
     popd >/dev/null || exit 1
 }
