@@ -22,7 +22,7 @@ function configure_minikube_hosts_file() {
 
     [ "$(minikube --profile="${minikubeProfile}" ssh "grep -q registry /etc/hosts && echo -n OK")" == "OK" ] && return
 
-    minikube --profile="${minikubeProfile}" ssh "sudo sh -c 'echo \"${registryClusterIP}    registry\" >> /etc/hosts'" >>"${LOG_FILE}" 2>&1 || terminate_with_log_tail
+    minikube --profile="${minikubeProfile}" ssh "sudo sh -c 'echo \"${registryClusterIP}    ${registryHost}\" >> /etc/hosts'" || exit 1
 }
 
 export -f configure_minikube_hosts_file

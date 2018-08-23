@@ -52,7 +52,7 @@ function createAndRun_Minikube() {
     if [ "${keepExisting}" -ne 1 ]; then
         minikube --profile=${minikubeProfile} \
                  start \
-                 --kubernetes-version=1.10.7 \
+                 --kubernetes-version=v1.10.7 \
                  --vm-driver=${minikubeVmDriver} \
                  --memory=8192 \
                  --cpus=4  || exit 1
@@ -111,10 +111,12 @@ function build_SplunkImage() {
 
     banner "Building Splunk Docker image"
 
+    set -vx
     eval "$(minikube --profile ${minikubeProfile} docker-env)" || exit 1
     docker --log-level warn build -t ${registryHost}/splunk_7:v1 . || exit 1
     docker --log-level warn push ${registryHost}/splunk_7:v1 || exit 1
     eval "$(minikube --profile ${minikubeProfile} docker-env --unset)" || exit 1
+    set +vx
 
     popd >/dev/null || exit 1
 }

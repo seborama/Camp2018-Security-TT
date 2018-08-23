@@ -24,7 +24,7 @@ typeset -xr MINIKUBE_PROFILE="minikube"
 
 typeset -xr MINIKUBE_VM_DRIVER="${MINIKUBE_VM_DRIVER:-virtualbox}"
 
-typeset -xr REGISTRY_HOST="registry"
+typeset -xr REGISTRY_HOST="registry.minikube"
 
 typeset -xr readonly OK=0
 typeset -xr readonly NOK=1
