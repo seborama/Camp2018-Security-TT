@@ -4,8 +4,8 @@
 # pass such variables
 # There should be scarce exceptions to this rule (such as a var that contains the script main install dir)
 
-[ -n "${_INC_MINIKUBE+x}" ] && return
-typeset -xr _INC_MINIKUBE
+[ -n "${_INC_K8S+x}" ] && return
+typeset -xr _INC_K8S
 
 [ -z "${SECURITY_TT_HOME}" ] && echo "ERROR - Invalid state - Make sure you use lab.sh" && exit 1
 

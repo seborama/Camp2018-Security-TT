@@ -52,6 +52,7 @@ function createAndRun_Minikube() {
     if [ "${keepExisting}" -ne 1 ]; then
         minikube --profile=${minikubeProfile} \
                  start \
+                 --kubernetes-version=1.10.7 \
                  --vm-driver=${minikubeVmDriver} \
                  --memory=8192 \
                  --cpus=4  || exit 1
