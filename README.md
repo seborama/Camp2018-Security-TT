@@ -80,7 +80,11 @@ Useful reference:
 
   - https://www.kali.org/news/kali-linux-metapackages/
   - https://tools.kali.org/tools-listing
+
+Kali can access Worpress on its K8s address (see [Wordpress](wordpress))
   
+### Wordpress
+
 You can access the Wordpress service from Kali on:
 
   - http://`minikube_ip`:30100
@@ -88,6 +92,10 @@ You can access the Wordpress service from Kali on:
   - https://`minikube_ip`:30101
     - e.g.: https://192.168.99.100:30101
     - you will likely require to export the cert from wordpress and import it where necessary.
+
+Log in as user `user` and the password you chose during set-up.
+
+These details can be recovered from Kubernetes (see the output of the script for details).
 
 ### Splunk Enterprise
 
