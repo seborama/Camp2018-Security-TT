@@ -81,7 +81,7 @@ Useful reference:
   - https://www.kali.org/news/kali-linux-metapackages/
   - https://tools.kali.org/tools-listing
 
-Kali can access Wordpress on its K8s address (see [Wordpress](wordpress))
+Kali can access Wordpress on its K8s address (see [Wordpress](#wordpress))
   
 ### Wordpress
 
