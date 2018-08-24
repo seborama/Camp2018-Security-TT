@@ -51,7 +51,7 @@ Once your instance of SES is running, log on to its Web UI, and:
 To set up the lab on OSX, run:
 
 ```bash
-./scripts/setup.sh
+./scripts/lab.sh init
 ```
 
 and follow the instructions the script displays.
