@@ -4,6 +4,12 @@ Pen-testing playground lab.
 
 ![](docs/SecurityTT_Camp_2018_PoC.jpg)
 
+Overall flow:
+ - an attack is performed from Kali to target Wordpress
+ - this activity generates logs inside the K8s cluster (Wordpress, DB, K8s, etc)
+ - the logs are captured by Splunk
+ - Splunk forwards them to Splunk SES (or Phantom, if set-up)
+
 What you get:
 
   - Homebrew, VirtualBox, Docker, Vagrant, Minikube
@@ -11,7 +17,7 @@ What you get:
   - Slunk (Minikube K8s cluster)
   - Wordpress (Minikube K8s cluster)
   - Integration with Splunk Enterprise Security
-  - [Documentation notes](docs/Phantom.md) for manual installation of Phantom (Community edition of Splunk Enterprise Security)
+  - [Documentation notes](docs/Phantom.md) for manual installation of Phantom
   - [Documentation for advanced topics](docs/Advanced%20topics.md) such as Vagrant with VMWare, tunnels, etc
 
 ## Pre-requisites
@@ -24,7 +30,7 @@ What you get:
 
 ### Splunk Enterprise Security (aka "SES")
 
-This is simpler than setting up Phantom (see separate document in the [docs](docs/Phantom.md) folder) but currently the trial only lasts 7 days...
+This is simpler than setting up Phantom (see separate document in the [docs](docs/Phantom.md) folder) but currently the SES trial only lasts 7 days...
 
 Sign up for the Trial (Cloud):
 
@@ -45,7 +51,7 @@ Once your instance of SES is running, log on to its Web UI, and:
 To set up the lab on OSX, run:
 
 ```bash
-./scripts/setup.sh
+./scripts/lab.sh init
 ```
 
 and follow the instructions the script displays.
@@ -74,7 +80,11 @@ Useful reference:
 
   - https://www.kali.org/news/kali-linux-metapackages/
   - https://tools.kali.org/tools-listing
+
+Kali can access Wordpress on its K8s address (see [Wordpress](#wordpress))
   
+### Wordpress
+
 You can access the Wordpress service from Kali on:
 
   - http://`minikube_ip`:30100
@@ -82,6 +92,12 @@ You can access the Wordpress service from Kali on:
   - https://`minikube_ip`:30101
     - e.g.: https://192.168.99.100:30101
     - you will likely require to export the cert from wordpress and import it where necessary.
+
+Log in as user `user` and the password you chose during set-up.
+
+The admin UI is on `/admin` e.g. http://192.168.99.100:30100/admin.
+
+These details can be recovered from Kubernetes (see the output of the script for details).
 
 ### Splunk Enterprise
 
