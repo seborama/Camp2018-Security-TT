@@ -29,14 +29,17 @@ function wait_for_minikube_registry_addon() {
 }
 
 
+#####################################################################
 function start_minikube() {
+#####################################################################
     local -r minikubeProfile=$1 ; : ${minikubeProfile:?<- missing argument in "'${FUNCNAME[0]}()'"}
 
     if [ -d ~/.minikube/machines/${minikubeProfile}/config.json ]; then
-        minikube start
+        minikube start || exit 1
     else
         echo "It doesn't appear that you have not initialised the environment yet"
         echo "Please run: lab.sh init"
+        exit 1
     fi
 }
 
@@ -46,7 +49,7 @@ function start() {
     local -r minikubeProfile=$1 ; : ${minikubeProfile:?<- missing argument in "'${FUNCNAME[0]}()'"}
     local -r registryHost=$2 ; : ${registryHost:?<- missing argument in "'${FUNCNAME[0]}()'"}
 
-    start_miniube ${minikubeProfile}
+    start_minikube ${minikubeProfile}
     wait_for_k8s_environment ${minikubeProfile}
     wait_for_minikube_registry_addon ${minikubeProfile} ${registryHost}
 }
