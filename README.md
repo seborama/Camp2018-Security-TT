@@ -17,7 +17,7 @@ What you get:
   - Slunk (Minikube K8s cluster)
   - Wordpress (Minikube K8s cluster)
   - Integration with Splunk Enterprise Security
-  - [Documentation notes](docs/Phantom.md) for manual installation of Phantom (Community edition of Splunk Enterprise Security)
+  - [Documentation notes](docs/Phantom.md) for manual installation of Phantom
   - [Documentation for advanced topics](docs/Advanced%20topics.md) such as Vagrant with VMWare, tunnels, etc
 
 ## Pre-requisites
@@ -30,7 +30,7 @@ What you get:
 
 ### Splunk Enterprise Security (aka "SES")
 
-This is simpler than setting up Phantom (see separate document in the [docs](docs/Phantom.md) folder) but currently the trial only lasts 7 days...
+This is simpler than setting up Phantom (see separate document in the [docs](docs/Phantom.md) folder) but currently the SES trial only lasts 7 days...
 
 Sign up for the Trial (Cloud):
 
