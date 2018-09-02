@@ -9,6 +9,19 @@
 
 
 #####################################################################
+function start_Docker() {
+#####################################################################
+    banner "Starting Docker"
+
+    open --background -a Docker
+
+    while ! docker system info &>/dev/null; do
+        sleep 2
+    done
+}
+
+
+#####################################################################
 function wait_for_k8s_environment() {
 #####################################################################
     local -r minikubeProfile=$1 ; : ${minikubeProfile:?<- missing argument in "'${FUNCNAME[0]}()'"}
@@ -43,11 +56,27 @@ function start_minikube() {
     fi
 }
 
+
+#####################################################################
+function start_Kali() {
+#####################################################################
+    pushd "${SECURITY_TT_HOME}/Kali_Linux" >/dev/null || exit 1
+
+    vagrant up
+
+    popd >/dev/null || exit 1
+}
+
+
 #####################################################################
 function start() {
 #####################################################################
     local -r minikubeProfile=$1 ; : ${minikubeProfile:?<- missing argument in "'${FUNCNAME[0]}()'"}
     local -r registryHost=$2 ; : ${registryHost:?<- missing argument in "'${FUNCNAME[0]}()'"}
+
+    start_Kali
+
+    start_Docker
 
     start_minikube ${minikubeProfile}
     wait_for_k8s_environment ${minikubeProfile}
