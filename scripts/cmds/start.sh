@@ -62,7 +62,7 @@ function start_Kali() {
 #####################################################################
     pushd "${SECURITY_TT_HOME}/Kali_Linux" >/dev/null || exit 1
 
-    vagrant up
+    vagrant up || exit 1
 
     popd >/dev/null || exit 1
 }
