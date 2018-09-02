@@ -60,13 +60,19 @@ At the end of the process, the script will display useful operational informatio
 
 ## Practical operational information
 
-### lab.sh
+### lab.sh script
 
 After running `init`, you may start / stop the lab manually as follows:
 
 ```bash
 ./scripts/lab.sh start
 ./scripts/lab.sh stop
+```
+
+You can get basic usage with this command:
+
+```bash
+./scripts/lab.sh -h
 ```
 
 ### Minikube IP
