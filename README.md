@@ -46,7 +46,7 @@ Once your instance of SES is running, log on to its Web UI, and:
   - Click the 'Download Universal Forwarder Credentials' button, point number 3 (at time of writing).
   - This will download a file called `splunkclouduf.spl`. Keep it handy, you'll use it during set-up.
 
-## Local set up instructions
+## Local setup instructions
 
 To set up the lab on OSX, run:
 
@@ -59,6 +59,15 @@ and follow the instructions the script displays.
 At the end of the process, the script will display useful operational information.
 
 ## Practical operational information
+
+### lab.sh
+
+After running `init`, you may start / stop the lab manually as follows:
+
+```bash
+./scripts/lab.sh start
+./scripts/lab.sh stop
+```
 
 ### Minikube IP
 
