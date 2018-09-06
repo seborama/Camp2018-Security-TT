@@ -188,7 +188,7 @@ function deploy_Wordpress {
     helm --kube-context=${minikubeProfile} install \
          --name=wordpress \
          --namespace=${k8sNamespace} \
-         -f WordPress/values-stable-wordpress-topicteam.yaml \
+         -f "${SECURITY_TT_HOME}"/WordPress/values-stable-wordpress-topicteam.yaml \
          stable/wordpress \
          --set-string wordpressPassword="${wordpressPassword}" \
          --set-string mariadbRootPassword="${mariadbRootPassword}" \
