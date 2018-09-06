@@ -47,10 +47,10 @@ function start_minikube() {
 #####################################################################
     local -r minikubeProfile=$1 ; : ${minikubeProfile:?<- missing argument in "'${FUNCNAME[0]}()'"}
 
-    if [ -d ~/.minikube/machines/${minikubeProfile}/config.json ]; then
+    if [ -f ~/.minikube/machines/${minikubeProfile}/config.json ]; then
         minikube start || exit 1
     else
-        echo "It doesn't appear that you have not initialised the environment yet"
+        echo "It doesn't appear that you have not initialised the environment yet (profile: ${minikubeProfile})"
         echo "Please run: lab.sh init"
         exit 1
     fi
